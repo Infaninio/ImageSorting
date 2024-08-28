@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Eine Liste deiner Konfigurationen{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<ul>
+  {% for link in configs %}
+  <li><a href="{{ link.url }}">{{ link.name }}</a></li>
+  {% endfor %}
+</ul>
+<br>
+<br>
+<br>
+<a href="/configs/newconfig">Create a new Collection</a>
+
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Welcome to ImageTinder{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <h2>Basic Usage</h2>
+  <p>To be able to use this tool you need to <a href="/auth/login">Login</a> and choose a configuration.</p>
+  <h3>Configurations</h3>
+  <p>A configuration describes a set of images. Configurations can be created with different filtering options.
+    For example it will use all images created between the 1st of January 2022 and 1st of February 2022.
+    This can be used to create a configuration for a specific timeline e.g. your vacation or your birthday.
+  </p>
+  <p>After your Login you will be redirected to your available configurations. There you can also create new configurations.</p>
+  <p>After creation of a new configuration or if you choosed an existing one you will be directed to the actual reviewing page/process.</p>
+  <h3>Usage of the Reviewing</h3>
+  <p>This tool lets you sort images. It will show you the image and you can like or not like the image. After you decided on the current image a new image will be displayed. This loop keeps going on until you reviewd alle images.</p>
+
+  {% endblock %}

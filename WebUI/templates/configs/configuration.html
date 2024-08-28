@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Übersicht über {{config.name}}{% endblock %}</h1>
+{% endblock %}
+
+
+{% block content %}
+<div class="grid-container">
+    <div class="grid-info">
+        <form method="post">
+            <table>
+                <tr>
+                    <td>Name</td>
+                    <td class="form-group"><input name="name" id="name", value="{{config.name}}"/></td>
+                </tr>
+                <tr>
+                    <td>Bilder</td>
+                    <td>{{config.sum_images}}</td>
+                </tr>
+                <tr>
+                    <td>Bewertete Bilder</td>
+                    <td>{{config.reviewed_images}}</td>
+                </tr>
+                <tr>
+                    <td>Beginn Zeitraum</td>
+                    <td class="form-group"><input type="date" name="start_date" id="start", value="{{config.start_date}}"/></td>
+                </tr>
+                <tr>
+                    <td>Ende Zeitraum</td>
+                    <td class="form-group"><input type="date" name="end_date" id="end", value="{{config.end_date}}"/></td>
+                </tr>
+            </table>
+
+            <input type="submit" name="save_button" value="Speichern">
+            <input type="submit" name="review_button" value="Bewerten Starten">
+        </form>
+    </div>
+    <div class="grid-image">
+        <img src="data:image/png;base64,{{ plot_url }}" alt="Bilderübersicht">
+    </div>
+
+</div>
+
+{% endblock %}
