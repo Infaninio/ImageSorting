@@ -1,0 +1,4 @@
+flask
+mariadb
+matplotlib
+pre-commit
