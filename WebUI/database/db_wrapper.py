@@ -75,7 +75,7 @@ class ImageTinderDatabase:
                     FROM collection INNER JOIN user_collection ON user_collection.collection_id=collection.id
                     WHERE user_collection.user_id={user_id};"""
         data = self._execute_sql(query, get_result=True)
-        return [{"name": res[0], "start_date": res[1], "end_date": res[2], "id": res[3]} for res in data]
+        return [{"name": res[0], "start_date": date.fromisoformat(res[1]), "end_date": date.fromisoformat(res[2]), "id": res[3]} for res in data]
 
     def save_collection(
         self,
