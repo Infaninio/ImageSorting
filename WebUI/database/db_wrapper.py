@@ -1,7 +1,7 @@
+import sqlite3
 from datetime import date
 from typing import Any, Dict, List, Optional
 
-import mariadb
 from flask import g
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -27,33 +27,19 @@ class WrongPassword(Exception):
 class ImageTinderDatabase:
     """Wrapper for the ImageTinder Database to be easy usable from outside."""
 
-    def __init__(
-        self,
-        user: str = "ImageTinderApp",
-        password: str = "AppPw",
-        host: str = "localhost",
-        port: int = 3306,
-    ) -> None:
+    def __init__(self, database_name: str = "ImageSorting.sqlite") -> None:
         """Create the database wrapper.
 
         Parameters
         ----------
-        user : str, optional
-            user for the database, by default "ImageTinderApp"
-        password : str, optional
-            password for the specific user, by default "password"
-        host : str, optional
-            host ip, by default "localhost"
-        port : int, optional
-            port for the database, by default 3306
+        database_name : str, optional
+            Name of the sqlite file, by default "ImageSorting.sqlite"
         """
-        self.connection = mariadb.connect(user=user, password=password, host=host, port=port)
-        with self.connection.cursor() as cur:
-            cur.execute("USE ImageTinder")
+        self.connection = sqlite3.connect(database_name)
 
     def _execute_sql(self, statement: str, get_result: bool = False) -> Optional[List[Any]]:
-        with self.connection.cursor() as cur:
-            cur.execute(statement)
+        with self.connection:
+            cur = self.connection.execute(statement)
             if get_result:
                 return list(cur)
             else:
@@ -146,8 +132,8 @@ class ImageTinderDatabase:
             "positive_images": positiv_rating,
             "negative_images": negativ_rating,
             "no_rating": no_rating,
-            "start_date": start_date,
-            "end_date": end_date,
+            "start_date": date.fromisoformat(start_date),
+            "end_date": date.fromisoformat(end_date),
         }
         return configuration
 

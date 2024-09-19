@@ -1,4 +1,4 @@
 flask
-mariadb
+sqlite3
 matplotlib
 pre-commit

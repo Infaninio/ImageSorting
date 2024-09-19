@@ -1,9 +1,9 @@
+import sqlite3
 import unittest
 from datetime import date
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import mariadb
 from db_wrapper import ImageTinderDatabase as DB
 from db_wrapper import UserAlreadyExists, UserNotExisting, WrongPassword
 
@@ -14,25 +14,20 @@ class TestImageSelector(unittest.TestCase):
     def __init__(self, methodName: str = "Test SelectorImage class") -> None:
         """Set up Testclass."""
         super().__init__(methodName)
-        connection = mariadb.connect(
-            user="root",
-            password="password",  # pragma: allowlist secret
-            host="localhost",
-            port=33061,
-        )
+        connection = sqlite3.connect("test.sqlite")
         self.cursor = connection.cursor()
         self.set_up_database()
 
-        self.db = DB(user="root", password="password", port=33061)
+        self.db = DB(database_name="test.sqlite")
 
     def set_up_database(self):
-        with open(Path(Path(__file__).parent.parent, "schema.sql")) as sql_file:
+        with open(Path(Path(__file__).parent.parent.parent, "Database/schema.sql")) as sql_file:
             data = sql_file.read().replace("\n", "").split(";")
             for query in data:
                 if query:
                     self.cursor.execute(query)
 
-        with open(Path(Path(__file__).parent, "fill_table.sql")) as sql_file:
+        with open(Path(Path(__file__).parent.parent.parent, "Database/fill_table.sql")) as sql_file:
             data = sql_file.read().replace("\n", "").split(";")
             for query in data:
                 if query:
