@@ -1,3 +1,7 @@
 flask
 matplotlib
 pre-commit
+pillow_heif
+nc_py_api
+typeguard
+unittest
