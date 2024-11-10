@@ -1,11 +1,11 @@
 import sqlite3
 import unittest
-from datetime import date
+from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from db_wrapper import ImageTinderDatabase as DB
-from db_wrapper import UserAlreadyExists, UserNotExisting, WrongPassword
+from WebUI.database import ImageTinderDatabase as DB
+from WebUI.database import UserAlreadyExists, UserNotExisting, WrongPassword
 
 
 class TestImageSelector(unittest.TestCase):
@@ -21,13 +21,13 @@ class TestImageSelector(unittest.TestCase):
         self.db = DB(database_name="test.sqlite")
 
     def set_up_database(self):
-        with open(Path(Path(__file__).parent.parent.parent, "Database/schema.sql")) as sql_file:
+        with open(Path(Path(__file__).parent.parent.parent, "ImageSorting/Database/schema.sql")) as sql_file:
             data = sql_file.read().replace("\n", "").split(";")
             for query in data:
                 if query:
                     self.cursor.execute(query)
 
-        with open(Path(Path(__file__).parent.parent.parent, "Database/fill_table.sql")) as sql_file:
+        with open(Path(Path(__file__).parent.parent.parent, "ImageSorting/Database/fill_table.sql")) as sql_file:
             data = sql_file.read().replace("\n", "").split(";")
             for query in data:
                 if query:
@@ -45,7 +45,7 @@ class TestImageSelector(unittest.TestCase):
     def mock_check_password(self, password, password_hash):
         return password == password_hash
 
-    @patch("db_wrapper.check_password_hash")
+    @patch("WebUI.database.db_wrapper.check_password_hash")
     def test_user_authentication(self, check_password: MagicMock):
         check_password.side_effect = self.mock_check_password
         user_id = self.db.get_user_id_from_table("user10@example.com", "securepasswordxyz")
@@ -57,7 +57,7 @@ class TestImageSelector(unittest.TestCase):
         with self.assertRaises(UserNotExisting):
             user_id = self.db.get_user_id_from_table("unknow@user.com", "apassword")
 
-    @patch("db_wrapper.check_password_hash")
+    @patch("WebUI.database.db_wrapper.check_password_hash")
     def test_get_username(self, check_password: MagicMock):
         check_password.side_effect = self.mock_check_password
         user_id = self.db.get_user_id_from_table("user10@example.com", "securepasswordxyz")
@@ -68,20 +68,20 @@ class TestImageSelector(unittest.TestCase):
         expected_result = [
             {
                 "name": "collection1",
-                "start_date": date(2023, 6, 1),
-                "end_date": date(2023, 9, 1),
+                "start_date": datetime(2023, 6, 1),
+                "end_date": datetime(2023, 9, 1),
                 "id": 1,
             },
             {
                 "name": "collection2",
-                "start_date": date(2024, 7, 15),
-                "end_date": date(2024, 7, 20),
+                "start_date": datetime(2024, 7, 15),
+                "end_date": datetime(2024, 7, 20),
                 "id": 2,
             },
             {
                 "name": "collection3",
-                "start_date": date(2024, 3, 1),
-                "end_date": date(2024, 3, 31),
+                "start_date": datetime(2024, 3, 1),
+                "end_date": datetime(2024, 3, 31),
                 "id": 3,
             },
         ]
@@ -91,14 +91,14 @@ class TestImageSelector(unittest.TestCase):
         expected_result = [
             {
                 "name": "collection2",
-                "start_date": date(2024, 7, 15),
-                "end_date": date(2024, 7, 20),
+                "start_date": datetime(2024, 7, 15),
+                "end_date": datetime(2024, 7, 20),
                 "id": 2,
             },
             {
                 "name": "collection3",
-                "start_date": date(2024, 3, 1),
-                "end_date": date(2024, 3, 31),
+                "start_date": datetime(2024, 3, 1),
+                "end_date": datetime(2024, 3, 31),
                 "id": 3,
             },
         ]
@@ -111,16 +111,16 @@ class TestImageSelector(unittest.TestCase):
     def test_new_collection(self):
         self.db.save_collection(
             name="collection4",
-            start_date=date(2023, 2, 3),
-            end_date=date(2024, 3, 4),
+            start_date=datetime(2023, 2, 3),
+            end_date=datetime(2024, 3, 4),
             user_id=1,
         )
         collections = self.db.get_user_collections(1)
         self.assertIn(
             {
                 "name": "collection4",
-                "start_date": date(2023, 2, 3),
-                "end_date": date(2024, 3, 4),
+                "start_date": datetime(2023, 2, 3),
+                "end_date": datetime(2024, 3, 4),
                 "id": 4,
             },
             collections,
@@ -129,8 +129,8 @@ class TestImageSelector(unittest.TestCase):
     def test_update_collection(self):
         self.db.save_collection(
             name="updated_collection",
-            start_date=date(2023, 2, 3),
-            end_date=date(2024, 3, 4),
+            start_date=datetime(2023, 2, 3),
+            end_date=datetime(2024, 3, 4),
             user_id=1,
             id=1,
         )
@@ -138,8 +138,8 @@ class TestImageSelector(unittest.TestCase):
         self.assertIn(
             {
                 "name": "updated_collection",
-                "start_date": date(2023, 2, 3),
-                "end_date": date(2024, 3, 4),
+                "start_date": datetime(2023, 2, 3),
+                "end_date": datetime(2024, 3, 4),
                 "id": 1,
             },
             collections,
@@ -150,14 +150,14 @@ class TestImageSelector(unittest.TestCase):
         expected_result = [
             {
                 "name": "collection2",
-                "start_date": date(2024, 7, 15),
-                "end_date": date(2024, 7, 20),
+                "start_date": datetime(2024, 7, 15),
+                "end_date": datetime(2024, 7, 20),
                 "id": 2,
             },
             {
                 "name": "collection3",
-                "start_date": date(2024, 3, 1),
-                "end_date": date(2024, 3, 31),
+                "start_date": datetime(2024, 3, 1),
+                "end_date": datetime(2024, 3, 31),
                 "id": 3,
             },
         ]
@@ -167,8 +167,8 @@ class TestImageSelector(unittest.TestCase):
         expected_result = [
             {
                 "name": "collection3",
-                "start_date": date(2024, 3, 1),
-                "end_date": date(2024, 3, 31),
+                "start_date": datetime(2024, 3, 1),
+                "end_date": datetime(2024, 3, 31),
                 "id": 3,
             }
         ]
@@ -186,8 +186,8 @@ class TestImageSelector(unittest.TestCase):
             "positive_images": 1,
             "negative_images": 2,
             "no_rating": 5,
-            "start_date": date(2023, 6, 1),
-            "end_date": date(2023, 9, 1),
+            "start_date": datetime(2023, 6, 1),
+            "end_date": datetime(2023, 9, 1),
         }
         self.assertDictEqual(result, expectation)
 
@@ -198,11 +198,21 @@ class TestImageSelector(unittest.TestCase):
             "positive_images": 3,
             "negative_images": 0,
             "no_rating": 5,
-            "start_date": date(2023, 6, 1),
-            "end_date": date(2023, 9, 1),
+            "start_date": datetime(2023, 6, 1),
+            "end_date": datetime(2023, 9, 1),
         }
 
         self.assertDictEqual(result, expectation)
+
+    def test_get_image_id(self):
+        result_id = self.db.get_image_id_by_path("/path/to/image1.jpg")
+        self.assertIsNotNone(result_id)
+
+        result_id = self.db.get_image_id_by_path("/path/to/notExisting.jpg")
+        self.assertIsNone(result_id)
+
+        result_id = self.db.get_image_id_by_path("/path/to/image01.jpg")
+        self.assertIsNone(result_id)
 
 
 if __name__ == "__main__":

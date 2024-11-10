@@ -1,9 +1,12 @@
+import os
 import sqlite3
-from datetime import date
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from flask import g
 from werkzeug.security import check_password_hash, generate_password_hash
+
+from WebUI.Image import Custom_Image
 
 
 class UserNotExisting(Exception):
@@ -27,7 +30,7 @@ class WrongPassword(Exception):
 class ImageTinderDatabase:
     """Wrapper for the ImageTinder Database to be easy usable from outside."""
 
-    def __init__(self, database_name: str = "ImageSorting.sqlite") -> None:
+    def __init__(self, database_name: str = "../ImageSorting.sqlite") -> None:
         """Create the database wrapper.
 
         Parameters
@@ -36,6 +39,13 @@ class ImageTinderDatabase:
             Name of the sqlite file, by default "ImageSorting.sqlite"
         """
         self.connection = sqlite3.connect(database_name)
+        try:
+            self.get_user_id_from_table("Admin", "test123")
+        except UserNotExisting:
+            admin_pass = os.environ.get("IMAGE_SORTING_ADMIN_PASS")
+            self.create_user("Admin", admin_pass)
+        except WrongPassword:
+            pass
 
     def _execute_sql(self, statement: str, get_result: bool = False) -> Optional[List[Any]]:
         with self.connection:
@@ -75,13 +85,21 @@ class ImageTinderDatabase:
                     FROM collection INNER JOIN user_collection ON user_collection.collection_id=collection.id
                     WHERE user_collection.user_id={user_id};"""
         data = self._execute_sql(query, get_result=True)
-        return [{"name": res[0], "start_date": date.fromisoformat(res[1]), "end_date": date.fromisoformat(res[2]), "id": res[3]} for res in data]
+        return [
+            {
+                "name": res[0],
+                "start_date": datetime.fromisoformat(res[1]),
+                "end_date": datetime.fromisoformat(res[2]),
+                "id": res[3],
+            }
+            for res in data
+        ]
 
     def save_collection(
         self,
         name: str,
-        start_date: date,
-        end_date: date,
+        start_date: datetime,
+        end_date: datetime,
         user_id: int,
         id: Optional[int] = None,
     ):
@@ -132,10 +150,33 @@ class ImageTinderDatabase:
             "positive_images": positiv_rating,
             "negative_images": negativ_rating,
             "no_rating": no_rating,
-            "start_date": date.fromisoformat(start_date),
-            "end_date": date.fromisoformat(end_date),
+            "start_date": datetime.fromisoformat(start_date),
+            "end_date": datetime.fromisoformat(end_date),
         }
         return configuration
+
+    def get_image_id_by_path(self, img_path: str) -> Optional[int]:
+        query = f"SELECT id FROM image WHERE image.file_path = '{img_path}';"
+
+        result = self._execute_sql(query, get_result=True)
+        if not result:
+            return None
+        return result[0][0]
+
+    def add_or_update_image(self, image: Custom_Image, update: bool = False):
+        img_id = self.get_image_by_path(image.path)
+        if img_id and not update:
+            return
+        date = image.get_date()
+        location = image.get_location()
+
+        if img_id:
+            query = f"""UPDATE image SET creation_date='{date}', location='{location}' WHERE id={img_id};"""
+            self._execute_sql(query)
+        else:
+            query = f"""INSERT INTO image (file_path, creation_date, location)
+                        VALUES ('{image.path}', '{date}', '{location}')"""
+            self._execute_sql(query)
 
 
 def get_db() -> ImageTinderDatabase:

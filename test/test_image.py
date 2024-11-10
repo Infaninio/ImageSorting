@@ -42,12 +42,11 @@ class TestCustomImage(unittest.TestCase):
             return_val = t_img.read()
         mock_instance.files.download.return_value = return_val
 
-        self.assertEqual(self.custom_image.get_date(), "2024-10-07 10:47:21")
+        self.assertEqual(self.custom_image.get_date(), datetime.fromisoformat("2024-10-07 10:47:21"))
 
     def test_get_date(self):
         self.custom_image.date = datetime.strptime("2023:01:01", "%Y:%m:%d")
-        self.assertEqual(self.custom_image.get_date(), "2023-01-01 00:00:00")
-        # Implement this test to check if the date is correctly formatted and returned as a string
+        self.assertEqual(self.custom_image.get_date(), datetime.strptime("2023:01:01", "%Y:%m:%d"))
 
 
 if __name__ == "__main__":

@@ -65,9 +65,9 @@ class Custom_Image:
         raise ValueError("Could not read date from Exif Data")
 
     @typechecked
-    def get_date(self) -> str:
+    def get_date(self) -> datetime:
         if self.date is not None:
-            return str(self.date)
+            return self.date
         if self.image is None:
             self._load_image_from_nextcloud()
 
@@ -75,6 +75,6 @@ class Custom_Image:
             self.date = self._extract_date(self.image)
         except ValueError:
             logging.warning(f"Could not read data from File {self.path}")
-            return ""
+            return datetime.today()
 
-        return str(self.date)
+        return self.date

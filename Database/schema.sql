@@ -36,6 +36,7 @@ CREATE TABLE user_image (
   user_id INTEGER,
   image_id INTEGER,
   rating TEXT NOT NULL,
+  deleted BOOLEAN NOT NULL default 0,
   FOREIGN KEY (user_id) REFERENCES user (id),
   FOREIGN KEY (image_id) REFERENCES image (id),
   PRIMARY KEY (user_id, image_id)
