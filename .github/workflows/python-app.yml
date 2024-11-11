@@ -13,10 +13,12 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  test:
 
     runs-on: ubuntu-latest
-
+    env:
+      NEXTCLOUD_USER: user1
+      NEXTCLOUD_PASSWORD: topSecret
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.10
