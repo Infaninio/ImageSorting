@@ -205,13 +205,13 @@ class TestImageSelector(unittest.TestCase):
         self.assertDictEqual(result, expectation)
 
     def test_get_image_id(self):
-        result_id = self.db.get_image_id_by_path("/path/to/image1.jpg")
+        result_id = self.db.get_image_id("/path/to/image1.jpg")
         self.assertIsNotNone(result_id)
 
-        result_id = self.db.get_image_id_by_path("/path/to/notExisting.jpg")
+        result_id = self.db.get_image_id("/path/to/notExisting.jpg")
         self.assertIsNone(result_id)
 
-        result_id = self.db.get_image_id_by_path("/path/to/image01.jpg")
+        result_id = self.db.get_image_id("/path/to/image01.jpg")
         self.assertIsNone(result_id)
 
 

@@ -155,7 +155,7 @@ class ImageTinderDatabase:
         }
         return configuration
 
-    def get_image_id_by_path(self, img_path: str) -> Optional[int]:
+    def get_image_id(self, img_path: str) -> Optional[int]:
         query = f"SELECT id FROM image WHERE image.file_path = '{img_path}';"
 
         result = self._execute_sql(query, get_result=True)
@@ -164,17 +164,17 @@ class ImageTinderDatabase:
         return result[0][0]
 
     def add_or_update_image(self, image: Custom_Image, update: bool = False):
-        img_id = self.get_image_by_path(image.path)
+        img_id = self.get_image_id(image.path)
         if img_id and not update:
             return
         date = image.get_date()
         location = image.get_location()
 
         if img_id:
-            query = f"""UPDATE image SET creation_date='{date}', location='{location}' WHERE id={img_id};"""
+            query = f"""UPDATE image SET creation_date='{date}', image_location='{location}' WHERE id={img_id};"""
             self._execute_sql(query)
         else:
-            query = f"""INSERT INTO image (file_path, creation_date, location)
+            query = f"""INSERT INTO image (file_path, creation_date, image_location)
                         VALUES ('{image.path}', '{date}', '{location}')"""
             self._execute_sql(query)
 
