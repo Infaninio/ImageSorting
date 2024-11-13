@@ -1,23 +1,30 @@
 <!doctype html>
 <title>{% block title %}{% endblock %} - ImageTinder</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-<nav>
-  <h1>ImageTinder</h1>
-  <ul>
-    {% if g.user %}
-      <li><a href="{{ url_for('configs.overview')}}">Konfigurationen von {{ g.user }}</a>
-      <li><a href="{{ url_for('auth.logout') }}">Log Out</a>
-    {% else %}
-      <li><a href="{{ url_for('auth.login') }}">Log In</a>
-    {% endif %}
-  </ul>
-</nav>
-<section class="content">
-  <header>
-    {% block header %}{% endblock %}
+
+<body id="page_body">
+  <header id="main_header" class="header">
+    <div id="left_header" class="header-item">
+    </div>
+
+    <div id="center_header" class="header-item">
+      {% block header %}{% endblock %}
+    </div>
+
+    <div id="right_header" class="header-item">
+      {% if g.user %}
+        <a href="{{ url_for('configs.overview')}}">Konfigurationen von {{ g.user }}</a>
+        <a href="{{ url_for('auth.logout') }}">Log Out</a>
+      {% else %}
+        <a href="{{ url_for('auth.login') }}">Log In</a>
+      {% endif %}
+    </div>
   </header>
-  {% for message in get_flashed_messages() %}
-    <div class="flash">{{ message }}</div>
-  {% endfor %}
-  {% block content %}{% endblock %}
-</section>
+
+    {% block content %}{% endblock %}
+
+  <footer class="Footer" id="judgment_footer">
+    {% block footer %}{% endblock %}
+  </footer>
+  {% block end_script %}{% endblock %}
+</body>

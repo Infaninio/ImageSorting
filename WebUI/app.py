@@ -32,6 +32,10 @@ def create_app(test_config=None) -> Flask:
     def index():
         return render_template("welcome.html")
 
+    @app.route("/noAdmin")
+    def noAdmin():
+        return render_template("noAdmin.html")
+
     from . import auth
 
     app.register_blueprint(auth.bp)

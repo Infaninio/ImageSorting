@@ -45,6 +45,8 @@ def show_config(config_id: str):
             )
             return redirect(url_for("configs.overview"))
 
+    if config_id == "newconfig" and db.get_username(session["user_id"]) != "Admin":
+        return render_template("noAdmin.html")
     if config_id == "newconfig":
         collection = {
             "name": "",

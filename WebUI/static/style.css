@@ -1,106 +1,363 @@
-html { font-family: sans-serif; background: #eee; padding: 1rem; height:100%;}
-body { margin: 0 auto; background: white; height: 100%;}
-h1 { font-family: serif; color: #377ba8; margin: 1rem 0; }
-a { color: #377ba8; }
-hr { border: none; border-top: 1px solid lightgray; }
-nav { background: lightgray; display: flex; align-items: center; padding: 0 0.5rem; }
-nav h1 { flex: auto; margin: 0; }
-nav h1 a { text-decoration: none; padding: 0.25rem 0.5rem; }
-nav ul  { display: flex; list-style: none; margin: 0; padding: 0; }
-nav ul li a, nav ul li span, header .action { display: block; padding: 0.5rem; }
-.content { padding: 0 1rem 1rem; }
-.content > header { border-bottom: 1px solid lightgray; display: flex; align-items: flex-end; }
-.content > header h1 { flex: auto; margin: 1rem 0 0.25rem 0; }
-.flash { margin: 1em 0; padding: 1em; background: #cae6f6; border: 1px solid #377ba8; }
-.post > header { display: flex; align-items: flex-end; font-size: 0.85em; }
-.post > header > div:first-of-type { flex: auto; }
-.post > header h1 { font-size: 1.5em; margin-bottom: 0; }
-.post .about { color: slategray; font-style: italic; }
-.post .body { white-space: pre-line; }
-.content:last-child { margin-bottom: 0; }
-.content form { margin: 1em 0; display: flex; flex-direction: column; }
-.content label { font-weight: bold; margin-bottom: 0.5em; }
-.content input, .content textarea { margin-bottom: 1em; }
-.content textarea { min-height: 12em; resize: vertical; }
-input.danger { color: #cc2f2e; }
-input[type=submit] { align-self: start; min-width: 10em; }
-
-.grid-container {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0 0.5rem;
-  grid-auto-rows: minmax(100px, auto);
-}
-.grid-infos {
-    grid-column: 1;
-    grid-row: 1;
-}
-.grid-image {
-    grid-column: 2;
-    grid-row: 1 / 2;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-table {
-    background-color: white;
-    padding: 0.5rem;
-    text-align: left;
-    padding: 10px 0;
+html,
+body {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #323232;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Cantarell, Ubuntu, "Helvetica Neue", Arial, sans-serif;
+  font-weight: 700;
+  color: #dadce0;
 }
-td {
-    padding: 10px 10px;
-  }
-.imageview
-  {
-  position:absolute;
-  background-color:rgba(20, 71, 118, 0.6000000238418579);
-  height:80%;
-  width:93%;
-  }
-  .rectangle1
-  {
-  background-color:#d9d9d9;
-  height:100%;
-  width:100%;
-  border:20px solid rgba(20, 71, 118, 0.6000000238418579);
 
-  position:relative;
-  }
-  .decline
-  {
-  height:100px;
-  width:100px;
-  left:40%;
-  top:80%;
-  position:absolute;
-  border-radius:50%;
-  border: 7px solid black;
-  background: -moz-linear-gradient(top, rgba(254, 19, 19, 0.431) 0%, rgb(175, 1, 1) 100%); /* FF3.6+ */
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgb(175, 1, 1)), color-stop(100%,rgba(254, 19, 19, 0.431))); /* Chrome,Safari4+ */
-  background: -webkit-linear-gradient(top, rgba(254, 19, 19, 0.431) 0%,rgb(175, 1, 1) 100%); /* Chrome10+,Safari5.1+ */
-  background: -o-linear-gradient(top, rgba(254, 19, 19, 0.431) 0%,rgb(175, 1, 1) 100%); /* Opera 11.10+ */
-  background: -ms-linear-gradient(top, rgba(254, 19, 19, 0.431) 0%,rgb(175, 1, 1) 100%); /* IE10+ */
-  background: linear-gradient(to bottom, rgba(254, 19, 19, 0.431) 0%,rgb(175, 1, 1) 100%); /* W3C */
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#a6000000', endColorstr='#00000000',GradientType=0 ); /* IE6-9 */
-  }
-  .accept
-  {
-  height:100px;
-  width:100px;
-  right:40%;
-  top:80%;
-  position:absolute;
-  border-radius:50%;
-  border: 7px solid black;
-  background: -moz-linear-gradient(top, rgba(19, 254, 66, 0.431) 0%, rgb(1, 85, 13) 100%); /* FF3.6+ */
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgb(1, 85, 13)), color-stop(100%,rgba(254, 19, 19, 0.431))); /* Chrome,Safari4+ */
-  background: -webkit-linear-gradient(top, rgba(19, 254, 66, 0.431) 0%,rgb(1, 85, 13) 100%); /* Chrome10+,Safari5.1+ */
-  background: -o-linear-gradient(top, rgba(19, 254, 66, 0.431) 0%,rgb(1, 85, 13) 100%); /* Opera 11.10+ */
-  background: linear-gradient(to bottom, rgba(19, 254, 66, 0.431) 0%,rgb(1, 85, 13) 100%); /* W3C */
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  /* Ensure the body takes up full viewport height */
+}
 
-  }
-.display_image{
-  height:100%;
-  width:100%;
-  position:absolute;
+.header {
+  display: inline-flex;
+  /* Flex layout for the header */
+  padding: 10px;
+  justify-content: space-between;
+  /* Spread out the left, center, and right content */
+  align-items: center;
+  /* Vertically center the content */
+  width: 100%;
+  font-size: 20px;
+  flex-shrink: 0;
+  /* Ensure header doesn't shrink */
+}
 
+#main_header {
+  box-sizing: border-box;
+}
+
+#left_header,
+#right_header {
+  flex: 1;
+  /* Allow these sections to take up the space on either side */
+}
+
+#right_header {
+  text-align: right;
+}
+
+#center_header {
+  display: flex;
+  align-items: center;
+  /* Align text vertically in the center */
+  display: flex;
+  justify-content: space-between;
+  /* Space out footer items */
+  align-items: center;
+}
+
+#center_header div {
+  margin: 3px;
+}
+
+#Image-Content {
+  flex-grow: 1;
+  /* The content section will take up the remaining space between header and footer */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  /* Prevent image from overflowing */
+}
+
+#image_container {
+  max-width: 100%;
+  max-height: 100%;
+  /* The image will scale to fit the available space */
+  object-fit: contain;
+  /* Maintain aspect ratio while fitting the space */
+  border-radius: 20px;
+}
+
+.Footer {
+  flex-shrink: 0;
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-item {
+  margin: 0 10px;
+  display: flex;
+  justify-content: space-between;
+  /* Space out footer items */
+  align-items: center;
+}
+
+#judgment_footer {
+  display: flex;
+  justify-content: space-between;
+  /* Space out footer items */
+  align-items: center;
+}
+
+.card-image {
+	display: block;
+	min-height: 15rem; /* layout hack */
+  background-size: cover;
+}
+
+.card > a {
+  padding: 0px;
+  border-radius: 0px;
+}
+
+.card-image > img {
+	width: 100%;
+}
+
+.card-list {
+	display: block;
+	margin: 1rem auto;
+	padding: 0;
+	font-size: 0;
+	text-align: center;
+	list-style: none;
+}
+
+
+.card {
+	display: inline-block;
+	width: 90%;
+	max-width: 20rem;
+	margin: 1rem;
+	font-size: 1rem;
+	text-decoration: none;
+	overflow: hidden;
+	box-shadow: 0 0 3rem -1rem rgba(0,0,0,0.5);
+	transition: transform 0.1s ease-in-out, box-shadow 0.1s;
+}
+
+.card:hover {
+	transform: translateY(-0.5rem) scale(1.0125);
+	box-shadow: 0 0.5em 3rem -1rem rgba(0,0,0,0.5);
+}
+
+.card-description {
+	display: block;
+	padding: 1em 0.5em;
+	color: #515151;
+	text-decoration: none;
+}
+
+.card-description > h2 {
+	margin: 0 0 0.5em;
+}
+
+.card-description > p {
+	margin: 0;
+}
+
+a {
+  background-color: #1c1c1c;
+  color: #dadce0;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+
+/* These styles are applied by default.
+ They will also override the hover
+ style for all stars to the right
+ of the currently hovered star. */
+.rate i,
+.rate i:hover~i {
+  color: #222;
+  text-shadow: none;
+  transition: color 200ms,
+    text-shadow 200ms;
+  /* This will remove the delay when
+   moving the cursor left or right
+   within the set of stars. */
+  transition-delay: 0;
+}
+
+/* This is the style that will be
+ applied to all stars and then
+ subsequently removed from the stars
+ to the right of the one being
+ hovered. */
+.rate:hover i {
+  color: #fc0;
+  text-shadow: #fc0 0 0 20px;
+}
+
+/* Make the effect apply one star at a
+ time. Limiting the selector to when
+ .rate is hovered removes the effect
+ without delay when cursor leaves
+ the .rate area. */
+.rate:hover i:nth-child(2) {
+  transition-delay: 30ms;
+}
+
+.rate:hover i:nth-child(3) {
+  transition-delay: 60ms;
+}
+
+.rate:hover i:nth-child(4) {
+  transition-delay: 90ms;
+}
+
+.rate:hover i:nth-child(5) {
+  transition-delay: 120ms;
+}
+
+/* Miscellaneous styles. */
+.rate i {
+  cursor: pointer;
+  font-style: normal;
+  font-size: 50px
+}
+
+.arrow {
+
+  transform: translate(-50%, -50%);
+  transform: rotate(270deg);
+  cursor: pointer;
+}
+
+#left-arrow-box {
+  transform: rotate(90deg)
+}
+
+.arrow span {
+  display: block;
+  width: 1.5vw;
+  height: 1.5vw;
+  border-bottom: 5px solid #dadce0;
+  border-right: 5px solid #dadce0;
+  transform: rotate(45deg);
+  margin: -10px;
+
+}
+
+.padding {
+  width: 50px;
+}
+
+.arrow:hover span {
+  animation: animate 2s infinite;
+}
+
+.arrow span:nth-child(2) {
+  animation-delay: -0.2s;
+}
+
+.arrow span:nth-child(3) {
+  animation-delay: -0.4s;
+}
+
+@keyframes animate {
+  0% {
+    opacity: 0;
+    transform: rotate(45deg) translate(-20px, -20px);
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: rotate(45deg) translate(20px, 20px);
+  }
+}
+
+.trash {
+  background: #ff6873;
+  width: 50px;
+  height: 50px;
+  display: inline-block;
+  margin: 0 auto;
+
+  position: relative;
+  -webkit-border-bottom-right-radius: 6px;
+  -webkit-border-bottom-left-radius: 6px;
+  -moz-border-radius-bottomright: 6px;
+  -moz-border-radius-bottomleft: 6px;
+  border-bottom-right-radius: 6px;
+  border-bottom-left-radius: 6px;
+}
+
+.trash span {
+  position: absolute;
+  height: 10px;
+  background: #ff6873;
+  top: -15px;
+  left: -5px;
+  right: -5px;
+
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  transform: rotate(0deg);
+  transition: transform 250ms;
+  transform-origin: 19% 100%;
+}
+
+.trash span:after {
+  content: '';
+  position: absolute;
+  width: 27px;
+  height: 5px;
+  background: #ff6873;
+  top: -7px;
+
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  transform: rotate(0deg);
+  transition: transform 250ms;
+  transform-origin: 19% 100%;
+  left: 27px;
+}
+
+
+.trash i {
+  position: relative;
+  width: 5px;
+  height: 36px;
+  background: #fff;
+  display: block;
+  margin: 7px auto;
+  border-radius: 5px;
+}
+
+.trash i:after {
+  content: '';
+  width: 5px;
+  height: 36px;
+  background: #fff;
+  position: absolute;
+  left: -13px;
+  border-radius: 5px;
+}
+
+.trash i:before {
+  content: '';
+  width: 5px;
+  height: 36px;
+  background: #fff;
+  position: absolute;
+  right: -13px;
+  border-radius: 5px;
+}
+
+.trash:hover span {
+  transform: rotate(-45deg);
+  transition: transform 250ms;
 }

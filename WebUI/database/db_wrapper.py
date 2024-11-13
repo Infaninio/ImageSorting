@@ -167,6 +167,7 @@ class ImageTinderDatabase:
         img_id = self.get_image_id(image.path)
         if img_id and not update:
             return
+
         date = image.get_date()
         location = image.get_location()
 

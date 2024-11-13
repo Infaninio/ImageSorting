@@ -1,81 +1,60 @@
 
 
 {% extends 'base.html' %}
-
-<script type="text/javascript">
-
-  // user_choice is an arbitrary string label or int.
-  function result(user_choice) {
-    console.log(user_choice);
-    var image = document.getElementById("candidate");
-    if (!image) {
-      console.log("No image element in page.");
-      return;
-    }
-    // Load a new image but report result.
-    document.location = "/?log="+image.src+":"+user_choice;
-  }
-
-  // Simple click
-  document.addEventListener('click', function(){result(0);}, false);
-
-  // Click and drag (non-touch-screen)
-  document.addEventListener('dragstart', handleDragStart, false);
-  document.addEventListener('dragend', handleDragEnd, false);
-
-  // On mobile swipe action
-  document.addEventListener('touchstart', handleTouchStart, false);
-  document.addEventListener('touchmove', handleTouchEnd, false);
-
-  var xDown = null;
-  function handleDragStart(evt) {
-    xDown = evt.clientX;
-  };
-  function handleTouchStart(evt) {
-    xDown = evt.touches[0].clientX;
-  };
-  function handleTouchEnd(evt) {
-    handleEnd(evt.touches[0].clientX);
-  }
-  function handleDragEnd(evt) {
-    handleEnd(evt.clientX);
-  }
-  function handleEnd(xUp) {
-    if ( !xDown ) { return; }
-    var xDiff = xDown - xUp;
-    if ( xDiff > 2 ) result(1);
-    if ( xDiff < -2 ) result(-1);
-    xDown = null;
-  };
-
-  </script>
-
 {% block header %}
-  <h1>{% block title %}Hier könnte der Ort des Bildes stehen{% endblock %}</h1>
+<div id="center_header" class="header-item">
+  <div>Regensburg</div>
+  <div>path/to/image.jpg</div>
+  <div>18.11.2024</div>
+</div>
 {% endblock %}
 
 {% block content %}
-
-<div id='imageview' class='imageview'>
-    <div id='rectangle1' class='rectangle1' dragable="true">
-      <img id='display_image' class='display_image' src="{{image_path}}"></img>
-        <img id='decline' class='decline' src="/static/images/decline.png"  onclick="redirectToPage('decline')"></img>
-        <img id='accept' class='accept' src="/static/images/accept.png" onclick="redirectToPage('accept')"></img>
-    </div>
-
+<div class="Content" id="Image-Content">
+<img id="image_container" src="{{image_path}}" alt="Image">
 </div>
+{% endblock %}
 
-<form id="redirectForm" action="" method="post" style="display: none;">
-  <input type="hidden" name="page" id="pageInput">
-</form>
+{% block footer %}
+<div class="footer-item">
+  <span class="trash" onclick="redirectToPage('trash')">
+    <span></span>
+    <i></i>
+  </span>
+</div>
+<div class="footer-item">
+  <div class="arrow" id="left-arrow-box" onclick="redirectToPage('previous')">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+  <div class="padding"></div>
+  <span class="rate"><i>★</i><i>★</i><i>★</i><i>★</i><i>★</i></span>
+  <div class="padding"></div>
+  <div class="arrow" id="right-arrow-box" onclick="redirectToPage('next')">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<div class="footer-item"></div>
 
-<script>
-  function redirectToPage(page) {
-      document.getElementById('pageInput').value = page;
-      // document.getElementById('redirectForm').action = "/images/next";
-      document.getElementById('redirectForm').submit();
-  }
-</script>
+{% endblock %}
+
+{% block end_script %}
+<!-- Hidden Form to handle redirection -->
+  <form id="redirectForm" method="POST" action="/images/next">
+    <input type="hidden" id="pageInput" name="page" />
+  </form>
+
+
+  <script>
+    function redirectToPage(page) {
+    console.log("Redirecting to page:", page); // Debugging
+    document.getElementById('pageInput').value = page; // Set the value of the hidden input
+    document.getElementById('redirectForm').submit();
+}
+  </script>
 
 
 {% endblock %}
