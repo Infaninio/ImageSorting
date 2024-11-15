@@ -1,4 +1,5 @@
 import functools
+import logging
 
 from flask import (
     Blueprint,
@@ -46,18 +47,20 @@ def register():
 @bp.route("/login", methods=("GET", "POST"))
 def login():
     """Webpage for UserLogin."""
+    error = None
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
-        error = None
         db = db_wrapper.ImageTinderDatabase()
 
         try:
             user = db.get_user_id_from_table(username=username, password=password)
         except db_wrapper.UserNotExisting:
-            error = "User does not exist, try another username (E-mail)"
+            error = "User does not exist. Try another username or register."
+            logging.warning(f"Can't find user {username}")
         except db_wrapper.WrongPassword:
             error = "Your Password was wrong, try again."
+            logging.warning(f"Password wrong for {username}")
 
         if error is None:
             session.clear()
@@ -66,7 +69,7 @@ def login():
 
         flash(error)
 
-    return render_template("auth/login.html")
+    return render_template("auth/login.html", error_message=error)
 
 
 @bp.before_app_request
