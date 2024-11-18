@@ -43,8 +43,12 @@ class Custom_Image:
     def get_image(self):
         if not self.image:
             self._load_image_from_nextcloud()
-
         return self.image
+
+    def get_preview(self):
+        img = self.get_image().copy()
+        img.thumbnail([512, 512])
+        return img
 
     def get_location(self) -> str:
         if self.location:

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block header %}
-  <h1>{% block title %}Eine Liste deiner Konfigurationen{% endblock %}</h1>
+  <h1>{% block title %}Eine Liste deiner Sammlungen{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
@@ -9,11 +9,11 @@
   {% for link in configs %}
   <li class="card">
     <a class="card-image" href="{{ link.url }}">
-      <img src="{{ link.img_path }}" alt="A fox"/>
+      <img src="{{ link.image_uri }}" alt="A fox"/>
     </a>
     <a class="card-description" target="_blank">
       <h2>{{link.name}}</h2>
-      <p> {{link.date}}</p>
+      <p> {{link.start_date}} - {{link.end_date}}</p>
     </a>
   </li>
   {% endfor %}

@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from flask import g
+from typeguard import typechecked
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from WebUI.Image import Custom_Image
@@ -25,6 +26,63 @@ class WrongPassword(Exception):
     """Exception for wrong password."""
 
     pass
+
+
+class Collection:
+    """A class representing a collection of images.
+
+    Attributes
+    ----------
+        name (str): The name of the collection.
+        images (int): The number of images in the collection.
+        start_date (datetime): The start date of the collection, as an ISO-formatted datetime object.
+        end_date (datetime): The end date of the collection, as an ISO-formatted datetime object.
+        preview_image (Optional[int]): The index of the preview image in the collection. Defaults to None.
+
+    Methods
+    -------
+        start_date_str: A property returning the start date as a string in the format "DD MMM YYYY".
+        end_date_str: A property returning the end date as a string in the format "DD MMM YYYY".
+        dict: A property returning a dictionary representation of the collection.
+    """
+
+    def __init__(self, name: str, images: int, start_date: str, end_date: str, preview_image: Optional[int] = None):
+        """Initialize a new instance of the Collection class.
+
+        Args:
+        ----
+            name (str): The name of the collection.
+            images (int): The number of images in the collection.
+            start_date (str): The start date of the collection as an ISO-formatted string.
+            end_date (str): The end date of the collection as an ISO-formatted string.
+            preview_image (Optional[int]): The index of the preview image in the collection. Defaults to None.
+        """
+        self.name = name
+        self.images = images
+        self.start_date = datetime.fromisoformat(start_date)
+        self.end_date = datetime.fromisoformat(end_date)
+        self.preview_image = preview_image
+
+    @property
+    def start_date_str(self) -> str:
+        """Returns the start date as a string in the format "DD MMM YYYY"."""
+        return self.start_date.strftime("%d %B %Y")
+
+    @property
+    def end_date_str(self) -> str:
+        """Returns the end date as a string in the format "DD MMM YYYY"."""
+        return self.end_date.strftime("%d %B %Y")
+
+    @property
+    def dict(self) -> Dict[str, Any]:
+        """Get a dictionary representation of the collection."""
+        return {
+            "url": "/configs/overview",
+            "image_uri": f"/images/pre_{self.preview_image}" if self.preview_image else "/static/images/default.jpg",
+            "name": self.name,
+            "start_date": self.start_date_str,
+            "end_date": self.end_date_str,
+        }
 
 
 class ImageTinderDatabase:
@@ -80,20 +138,12 @@ class ImageTinderDatabase:
         self._execute_sql(query)
         self.connection.commit()
 
-    def get_user_collections(self, user_id: int) -> List[Dict[str, Any]]:
-        query = f"""SELECT collection.name, collection.start_date, collection.end_date, collection.id
+    def get_user_collections(self, user_id: int) -> List[Collection]:
+        query = f"""SELECT collection.id
                     FROM collection INNER JOIN user_collection ON user_collection.collection_id=collection.id
                     WHERE user_collection.user_id={user_id};"""
         data = self._execute_sql(query, get_result=True)
-        return [
-            {
-                "name": res[0],
-                "start_date": datetime.fromisoformat(res[1]),
-                "end_date": datetime.fromisoformat(res[2]),
-                "id": res[3],
-            }
-            for res in data
-        ]
+        return [self.get_collection_info(result[0], 0) for result in data]
 
     def save_collection(
         self,
@@ -120,7 +170,8 @@ class ImageTinderDatabase:
         query = f"INSERT INTO user_collection (user_id, collection_id) VALUES ({user_id}, {collection_id})"
         self._execute_sql(query)
 
-    def get_collection_info(self, collection_id: int, user_id: int) -> Dict[str, Any]:
+    @typechecked
+    def get_collection_info(self, collection_id: int, user_id: int) -> Collection:
         query = f"""SELECT collection.name, collection.start_date, collection.end_date
                     FROM collection
                     WHERE collection.id={collection_id};"""
@@ -133,27 +184,15 @@ class ImageTinderDatabase:
                     WHERE i.creation_date BETWEEN '{start_date}' AND '{end_date}';"""
         images = self._execute_sql(query, get_result=True)
 
-        no_rating, positiv_rating, negativ_rating = 0, 0, 0
+        collection = Collection(
+            name=collection[0][0],
+            images=len(images),
+            start_date=start_date,
+            end_date=end_date,
+            preview_image=images[0][0],
+        )
 
-        for image in images:
-            if image[4] == "like":
-                positiv_rating += 1
-            elif image[4] == "dislike":
-                negativ_rating += 1
-            elif image[4] == "no_rating":
-                no_rating += 1
-            else:
-                print(f"Unknown rating: {image[4]}")
-        configuration = {
-            "name": collection[0][0],
-            "images": len(images),
-            "positive_images": positiv_rating,
-            "negative_images": negativ_rating,
-            "no_rating": no_rating,
-            "start_date": datetime.fromisoformat(start_date),
-            "end_date": datetime.fromisoformat(end_date),
-        }
-        return configuration
+        return collection
 
     def get_image_id(self, img_path: str) -> Optional[int]:
         query = f"SELECT id FROM image WHERE image.file_path = '{img_path}';"
@@ -178,6 +217,12 @@ class ImageTinderDatabase:
             query = f"""INSERT INTO image (file_path, creation_date, image_location)
                         VALUES ('{image.path}', '{date}', '{location}')"""
             self._execute_sql(query)
+
+    def get_image(self, image_id: int) -> Custom_Image:
+        query = f"""SELECT * FROM image WHERE image.id={image_id}"""
+        result = self._execute_sql(query, True)[0]
+
+        return Custom_Image(path=result[1], location=result[3], date=result[2])
 
 
 def get_db() -> ImageTinderDatabase:

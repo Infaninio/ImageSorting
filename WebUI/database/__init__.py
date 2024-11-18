@@ -1,2 +1,9 @@
 """Databse wrapper functionality."""
-from .db_wrapper import ImageTinderDatabase, UserAlreadyExists, UserNotExisting, WrongPassword  # noqa: F401
+from .db_wrapper import (  # noqa: F401
+    Collection,
+    ImageTinderDatabase,
+    UserAlreadyExists,
+    UserNotExisting,
+    WrongPassword,
+    get_db,
+)
