@@ -46,17 +46,21 @@ class Collection:
         dict: A property returning a dictionary representation of the collection.
     """
 
-    def __init__(self, name: str, images: int, start_date: str, end_date: str, preview_image: Optional[int] = None):
+    def __init__(
+        self, id: int, name: str, images: int, start_date: str, end_date: str, preview_image: Optional[int] = None
+    ):
         """Initialize a new instance of the Collection class.
 
         Args:
         ----
+            id (int): Unique id of the collection.
             name (str): The name of the collection.
             images (int): The number of images in the collection.
             start_date (str): The start date of the collection as an ISO-formatted string.
             end_date (str): The end date of the collection as an ISO-formatted string.
             preview_image (Optional[int]): The index of the preview image in the collection. Defaults to None.
         """
+        self.id = id
         self.name = name
         self.images = images
         self.start_date = datetime.fromisoformat(start_date)
@@ -77,7 +81,7 @@ class Collection:
     def dict(self) -> Dict[str, Any]:
         """Get a dictionary representation of the collection."""
         return {
-            "url": "/configs/overview",
+            "url": f"/images/review/{self.id}",
             "image_uri": f"/images/pre_{self.preview_image}" if self.preview_image else "/static/images/default.jpg",
             "name": self.name,
             "start_date": self.start_date_str,
@@ -185,6 +189,7 @@ class ImageTinderDatabase:
         images = self._execute_sql(query, get_result=True)
 
         collection = Collection(
+            id=collection_id,
             name=collection[0][0],
             images=len(images),
             start_date=start_date,

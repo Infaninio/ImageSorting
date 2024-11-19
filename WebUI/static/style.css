@@ -158,7 +158,7 @@ a {
   color: #222;
   text-shadow: none;
   transition: color 200ms,
-    text-shadow 200ms;
+  text-shadow 200ms;
   /* This will remove the delay when
    moving the cursor left or right
    within the set of stars. */
@@ -171,6 +171,12 @@ a {
  to the right of the one being
  hovered. */
 .rate:hover i {
+  color: #fc0;
+  text-shadow: #fc0 0 0 20px;
+}
+
+/* When a star is selected, apply the selected state */
+.rate i.selected {
   color: #fc0;
   text-shadow: #fc0 0 0 20px;
 }

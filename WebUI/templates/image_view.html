@@ -1,5 +1,3 @@
-
-
 {% extends 'base.html' %}
 {% block header %}
 <div id="center_header" class="header-item">
@@ -11,7 +9,7 @@
 
 {% block content %}
 <div class="Content" id="Image-Content">
-<img id="image_container" src="{{image_path}}" alt="Image">
+  <img id="image_container" src="{{image_path}}" alt="Image">
 </div>
 {% endblock %}
 
@@ -28,7 +26,9 @@
     <span></span>
     <span></span>
   </div>
-  <span class="rate" id="star-rating"><i>★</i><i>★</i><i>★</i><i>★</i><i>★</i></span>
+  <span class="rate" id="star-rating">
+    <i>★</i><i>★</i><i>★</i><i>★</i><i>★</i>
+  </span>
   <div class="arrow" onclick="redirectToPage('next')">
     <span></span>
     <span></span>
@@ -36,23 +36,72 @@
   </div>
 </div>
 <div class="footer-item"></div>
-
 {% endblock %}
 
 {% block end_script %}
-<!-- Hidden Form to handle redirection -->
-  <form id="redirectForm" method="POST" action="/images/next">
-    <input type="hidden" id="pageInput" name="page" />
-  </form>
+<!-- Hidden Form to handle redirection and rating -->
+<form id="redirectForm" method="POST" action="/images/review">
+  <input type="hidden" id="pageInput" name="page" />
+  <input type="hidden" id="ratingInput" name="rating" />
+</form>
 
+<script>
+  let currentRating = 0; // Variable to store the current rating
 
-  <script>
-    function redirectToPage(page) {
-    console.log("Redirecting to page:", page); // Debugging
-    document.getElementById('pageInput').value = page; // Set the value of the hidden input
-    document.getElementById('redirectForm').submit();
-}
-  </script>
+  // Function to set the rating state
+  function updateRating(selectedIndex) {
+    const stars = document.querySelectorAll('.rate i');
+    currentRating = selectedIndex + 1; // Store the selected rating (1-5)
 
+    stars.forEach((star, index) => {
+      if (index <= selectedIndex) {
+        star.classList.add('selected');
+      } else {
+        star.classList.remove('selected');
+      }
+    });
+  }
 
+  // Add click event listeners to each star
+  document.querySelectorAll('.rate i').forEach((star, index) => {
+    star.addEventListener('click', () => {
+      updateRating(index);  // Update the rating state on click
+    });
+  });
+
+  // Function to handle page redirection and send the rating (via AJAX)
+  function redirectToPage(page) {
+    console.log("Redirecting to page:", page);
+
+    // Set the page and rating values
+    const pageInput = document.getElementById('pageInput');
+    const ratingInput = document.getElementById('ratingInput');
+    const image_id = document.getElementById("image_container")
+    pageInput.value = page;
+    ratingInput.value = currentRating;
+
+    // Send the data via AJAX
+    fetch('/images/review', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        page: page,
+        rating: currentRating,
+        image_id: image_id.src,
+      })
+    })
+      .then(response => response.json())  // Expecting a JSON response with the new image path
+      .then(data => {
+        if (data.success) {
+          // Update the image src with the new image path
+          document.getElementById('image_container').src = data.new_image_path;
+        } else {
+          console.error('Error:', data.error_message);
+        }
+      })
+      .catch(error => console.error('Error:', error));
+  }
+</script>
 {% endblock %}

@@ -1,6 +1,6 @@
 import io
 
-from flask import Blueprint, redirect, render_template, request, send_file, url_for
+from flask import Blueprint, jsonify, redirect, render_template, request, send_file, session, url_for
 
 from .database import get_db
 
@@ -27,8 +27,8 @@ def overview():
     return redirect(url_for("configs.overview"))
 
 
-@bp.route("<config_id>/next", methods=("GET", "POST"))
-def next_image(config_id: int):
+@bp.route("review/<config_id>", methods=("GET", "POST"))
+def init_review(config_id: str):
     """Display image deciding site.
 
     Parameters
@@ -37,14 +37,25 @@ def next_image(config_id: int):
         Name of the image.
 
     """
+    session["config_id"] = config_id
+    session["current_image"] = 1
+    return redirect(url_for("images.review"))
+
+
+@bp.route("review", methods=("GET", "POST"))
+def review():
+    """Load first review page, or get next review image."""
     if request.method == "POST":
         print(request.form["page"])
-        if "decline" == request.form["page"]:
-            return redirect(url_for("images.image", config_id=config_id))
-        if "accept" == request.form["page"]:
-            return redirect(url_for("images.image", config_id=config_id))
+        print(request.form)
+        if "next" == request.form["page"]:
+            return jsonify({"success": True, "new_image_path": f"/images/id_{2}"})
+        if "previous" == request.form["page"]:
+            return jsonify({"success": True, "new_image_path": f"/images/id_{1}"})
+        if "trash" == request.form["page"]:
+            return jsonify({"success": True, "new_image_path": f"/images/id_{3}"})
 
-    return render_template("image_view.html", image_path="/static/images/default.jpg")
+    return render_template("image_view.html", image_path=f"/images/id_{1}")
 
 
 @bp.route("<image_id>")
