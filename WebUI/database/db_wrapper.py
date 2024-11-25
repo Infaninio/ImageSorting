@@ -1,3 +1,4 @@
+import json
 import os
 import sqlite3
 from datetime import datetime
@@ -228,6 +229,31 @@ class ImageTinderDatabase:
         result = self._execute_sql(query, True)[0]
 
         return Custom_Image(path=result[1], location=result[3], date=result[2])
+
+    @typechecked
+    def get_review(self, user_id: int, image_id: int) -> Optional[Dict[str, Any]]:
+        query = f"""SELECT rating
+                   FROM user_image
+                   WHERE user_id = {user_id} AND image_id = {image_id};"""
+        return_value = self._execute_sql(query, True)
+        if return_value:
+            return json.loads(return_value[0][0])
+        else:
+            return None
+
+    @typechecked
+    def add_or_update_review(self, user_id: int, image_id: int, review: Dict[str, Any]):
+        old_review = self.get_review(user_id=user_id, image_id=image_id)
+
+        if old_review:
+            old_review.update(review)
+            query = f"""UPDATE user_image SET rating='{json.dumps(old_review)}'
+                        WHERE user_id={user_id} AND image_ID={image_id};"""
+        else:
+            query = f"""INSERT INTO user_image (user_id, image_id, rating)
+                        VALUES ({user_id}, {image_id}, '{json.dumps(review)}');"""
+
+        self._execute_sql(query)
 
 
 def get_db() -> ImageTinderDatabase:

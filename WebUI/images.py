@@ -45,9 +45,18 @@ def init_review(config_id: str):
 @bp.route("review", methods=("GET", "POST"))
 def review():
     """Load first review page, or get next review image."""
+    user_id = session.get("user_id")
     if request.method == "POST":
         print(request.form["page"])
+        db = get_db()
+        image_id = request.form["image_id"]
+        image_id = int(image_id[image_id.rfind("id_") + 3 :])
+        print(image_id)
+        # old_review = db.get_review(user_id=user_id, image_id=image_id)
         print(request.form)
+        new_rating = int(request.form["rating"])
+        db.add_or_update_review(user_id=user_id, image_id=image_id, review={"star": new_rating})
+
         if "next" == request.form["page"]:
             return jsonify({"success": True, "new_image_path": f"/images/id_{2}"})
         if "previous" == request.form["page"]:
