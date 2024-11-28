@@ -101,35 +101,28 @@ def image(image_id: str):
     return send_file(image_io, as_attachment=False, mimetype="image/png")
 
 
-@bp.route("get_adjacent_images/<current_image_id>", methods=("GET",))
-def get_adjacent_images(current_image_id):
-    """Fetch the next and previous image paths and ratings for preloading."""
+@bp.route("get_adjacent_images_extended/<current_image_id>", methods=("GET",))
+def get_adjacent_images_extended(current_image_id):
+    """Fetch multiple adjacent images for preloading (e.g., next 3, previous 3)."""
     user_id = session.get("user_id")
     db = get_db()
     config_id = int(session["config_id"])
-    print(current_image_id)
     current_image_id = int(current_image_id[3:])
 
-    # Fetch adjacent images
-    next_image_id = db.get_next_image_ids(user_id, config_id, current_image_id)[0]
+    # Fetch next and previous images
+    next_image_ids = db.get_next_image_ids(user_id, config_id, current_image_id, next_images=5)
     previous_image_id = db.get_previous_image_id(user_id, config_id, current_image_id)
 
     # Fetch ratings for these images
-    next_image_rating = db.get_review(user_id, next_image_id)
-    next_image_rating = next_image_rating.get("star", 0) if next_image_rating else 0
+    next_images = []
+    for next_image_id in next_image_ids:
+        next_image_rating = db.get_review(user_id, next_image_id)
+        next_image_rating = next_image_rating.get("star", 0) if next_image_rating else 0
+        next_images.append({"image_path": f"/images/id_{next_image_id}", "rating": next_image_rating})
 
+    previous_images = []
     previous_image_rating = db.get_review(user_id, previous_image_id)
     previous_image_rating = previous_image_rating.get("star", 0) if previous_image_rating else 0
+    previous_images.append({"image_path": f"/images/id_{previous_image_id}", "rating": previous_image_rating})
 
-    return jsonify(
-        {
-            "next": {
-                "image_path": f"/images/id_{next_image_id}" if next_image_id else None,
-                "rating": next_image_rating,
-            },
-            "previous": {
-                "image_path": f"/images/id_{previous_image_id}" if previous_image_id else None,
-                "rating": previous_image_rating,
-            },
-        }
-    )
+    return jsonify({"next": next_images, "previous": previous_images})

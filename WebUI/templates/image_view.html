@@ -76,35 +76,58 @@
     });
   }
 
-   // Add click event listeners to each star
-   document.querySelectorAll('.rate i').forEach((star, index) => {
+  // Add click event listeners to each star
+  document.querySelectorAll('.rate i').forEach((star, index) => {
     star.addEventListener('click', () => {
       updateRating(index);  // Update the rating state on click
     });
   });
 
   let preloadedImages = {}; // Cache for preloaded images and ratings
+  const MAX_PRELOADED_IMAGES = 10; // Max number of images to preload
 
   function preloadAdjacentImages(currentImageId) {
-    // Fetch adjacent image metadata
-    fetch(`/images/get_adjacent_images/${currentImageId}`)
+    // Fetch adjacent image metadata (next and previous images)
+    fetch(`/images/get_adjacent_images_extended/${currentImageId}`)
       .then(response => response.json())
       .then(data => {
-        if (data.next.image_path) {
-          preloadImage(data.next.image_path, data.next.rating);
-        }
-        if (data.previous.image_path) {
-          preloadImage(data.previous.image_path, data.previous.rating);
-        }
+        // Preload the next set of images
+        data.next.forEach(imageData => {
+          preloadImage(imageData.image_path, imageData.rating);
+        });
+
+        // Preload the previous set of images
+        data.previous.forEach(imageData => {
+          preloadImage(imageData.image_path, imageData.rating);
+        });
       })
       .catch(error => console.error("Error preloading images:", error));
   }
 
   function preloadImage(imagePath, rating) {
+
+    // Check if the image has already been preloaded
+    if (preloadedImages[imagePath]) {
+      console.log(`Image already preloaded: ${imagePath}`);
+      return; // If the image is already preloaded, don't load it again
+    }
+
+    // Preload the image and store it in the preloadedImages object
     const img = new Image();
     img.src = imagePath;
     preloadedImages[imagePath] = { img, rating };
+
+    console.log(`Preloading image: ${imagePath}`);
+
+    // If the number of preloaded images exceeds the maximum limit, remove the oldest
+    if (Object.keys(preloadedImages).length > MAX_PRELOADED_IMAGES) {
+      // Remove the first inserted image (oldest)
+      const oldestImageKey = Object.keys(preloadedImages)[0];
+      delete preloadedImages[oldestImageKey];
+    }
   }
+
+
 
   // Update the current image and preload the next set
   function navigateImage(action) {
@@ -158,6 +181,47 @@
   document.getElementById("left-arrow-box").addEventListener("click", () => navigateImage("previous"));
   document.querySelector(".arrow:not(#left-arrow-box)").addEventListener("click", () => navigateImage("next"));
   document.querySelector(".trash").addEventListener("click", () => navigateImage("trash"));
+
+
+  // Function to handle the window resize event
+  function handleResize() {
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    // Prepare the data to send to the server
+    const resizeData = {
+      width: viewportWidth,
+      height: viewportHeight
+    };
+
+    // Send the resize data to the server via AJAX
+    fetch('/resize-image', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(resizeData) // Send viewport size as JSON
+    })
+      .then(response => response.json())
+      .then(data => {
+        // Handle the server response (optional, e.g., update UI or cache new image)
+        if (data.success) {
+          console.log('Image resized successfully');
+          const currentImageId = document.getElementById("image_container").src.split("/").pop();
+          preloadedImages = {}
+          preloadAdjacentImages(currentImageId);
+        } else {
+          console.error('Error resizing image');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+  }
+
+  // Add event listener for resize event
+  window.addEventListener('resize', handleResize);
+
 </script>
 
 
