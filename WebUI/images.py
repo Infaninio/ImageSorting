@@ -99,3 +99,37 @@ def image(image_id: str):
         image.get_image().save(image_io, format="PNG")
         image_io.seek(0)
     return send_file(image_io, as_attachment=False, mimetype="image/png")
+
+
+@bp.route("get_adjacent_images/<current_image_id>", methods=("GET",))
+def get_adjacent_images(current_image_id):
+    """Fetch the next and previous image paths and ratings for preloading."""
+    user_id = session.get("user_id")
+    db = get_db()
+    config_id = int(session["config_id"])
+    print(current_image_id)
+    current_image_id = int(current_image_id[3:])
+
+    # Fetch adjacent images
+    next_image_id = db.get_next_image_ids(user_id, config_id, current_image_id)[0]
+    previous_image_id = db.get_previous_image_id(user_id, config_id, current_image_id)
+
+    # Fetch ratings for these images
+    next_image_rating = db.get_review(user_id, next_image_id)
+    next_image_rating = next_image_rating.get("star", 0) if next_image_rating else 0
+
+    previous_image_rating = db.get_review(user_id, previous_image_id)
+    previous_image_rating = previous_image_rating.get("star", 0) if previous_image_rating else 0
+
+    return jsonify(
+        {
+            "next": {
+                "image_path": f"/images/id_{next_image_id}" if next_image_id else None,
+                "rating": next_image_rating,
+            },
+            "previous": {
+                "image_path": f"/images/id_{previous_image_id}" if previous_image_id else None,
+                "rating": previous_image_rating,
+            },
+        }
+    )

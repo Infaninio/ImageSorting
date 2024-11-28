@@ -83,7 +83,30 @@
     });
   });
 
-  // Function to handle navigation (previous, next, trash)
+  let preloadedImages = {}; // Cache for preloaded images and ratings
+
+  function preloadAdjacentImages(currentImageId) {
+    // Fetch adjacent image metadata
+    fetch(`/images/get_adjacent_images/${currentImageId}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.next.image_path) {
+          preloadImage(data.next.image_path, data.next.rating);
+        }
+        if (data.previous.image_path) {
+          preloadImage(data.previous.image_path, data.previous.rating);
+        }
+      })
+      .catch(error => console.error("Error preloading images:", error));
+  }
+
+  function preloadImage(imagePath, rating) {
+    const img = new Image();
+    img.src = imagePath;
+    preloadedImages[imagePath] = { img, rating };
+  }
+
+  // Update the current image and preload the next set
   function navigateImage(action) {
     const imageContainer = document.getElementById("image_container");
     const imageId = imageContainer.src.split("/").pop(); // Extract current image ID
@@ -102,15 +125,19 @@
       .then(response => response.json())
       .then(data => {
         if (data.success) {
-          // Update the image source with the new image path
-          if (data.new_image_path) {
-            imageContainer.src = data.new_image_path;
-          }
+          const newImagePath = data.new_image_path;
 
-          // Update the star rating for the new image
-          if (data.rating !== undefined) {
+          // Check if the image was preloaded
+          if (preloadedImages[newImagePath]) {
+            const { img, rating } = preloadedImages[newImagePath];
+            imageContainer.src = img.src; // Use preloaded image
+            updateRatingDisplay(rating); // Update rating
+          } else {
+            imageContainer.src = newImagePath; // Fallback to fetching new image
             updateRatingDisplay(data.rating);
           }
+
+          preloadAdjacentImages(newImagePath.split("/").pop()); // Preload the next set
         } else if (data.redirect_url) {
           // Redirect if no more images are available
           window.location.href = data.redirect_url;
@@ -118,10 +145,14 @@
           console.error("Failed to navigate to the next image.");
         }
       })
-      .catch(error => {
-        console.error("Error:", error);
-      });
+      .catch(error => console.error("Error:", error));
   }
+
+  // Preload images when the current one loads
+  document.getElementById("image_container").addEventListener("load", () => {
+    const currentImageId = document.getElementById("image_container").src.split("/").pop();
+    preloadAdjacentImages(currentImageId);
+  });
 
   // Attach navigation events
   document.getElementById("left-arrow-box").addEventListener("click", () => navigateImage("previous"));
