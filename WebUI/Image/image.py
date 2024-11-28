@@ -39,8 +39,30 @@ class Custom_Image:
     def _load_image_from_nextcloud(self):
         rgb_image = self.nextcloud_instance.files.download(self.path)
         self.image = Image.open(BytesIO(rgb_image))
+        self.image = self._apply_orientation(self.image)
+
+    def _apply_orientation(self, img: Image.Image) -> Image.Image:
+        """Correct image orientation based on EXIF data."""
+        try:
+            exif = img.getexif()
+            orientation_tag = next(tag for tag, name in TAGS.items() if name == "Orientation")
+            orientation = exif.get(orientation_tag, 1)  # Default to normal orientation (1)
+
+            # Apply transformations based on the orientation value
+            if orientation == 3:  # 180 degrees
+                img = img.rotate(180, expand=True)
+            elif orientation == 6:  # 90 degrees clockwise
+                img = img.rotate(270, expand=True)
+            elif orientation == 8:  # 90 degrees counterclockwise
+                img = img.rotate(90, expand=True)
+
+        except (AttributeError, KeyError, ValueError):
+            logging.warning("Could not determine orientation from EXIF data. Returning original image.")
+
+        return img
 
     def get_image(self):
+        """Load and return the image, applying orientation if needed."""
         if not self.image:
             self._load_image_from_nextcloud()
         return self.image
