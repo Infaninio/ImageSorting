@@ -255,6 +255,89 @@ class ImageTinderDatabase:
 
         self._execute_sql(query)
 
+    @typechecked
+    def get_starting_image_id(
+        self,
+        user_id: int,
+        config_id: int,
+    ) -> int:
+        query = f"""WITH images_in_collection AS (
+                SELECT i.id, i.file_path, i.creation_date, i.image_location
+                FROM image i
+                INNER JOIN collection c
+                    ON i.creation_date BETWEEN c.start_date AND c.end_date
+                WHERE c.id = {config_id}
+            ),
+            unreviewed_images AS (
+                SELECT i.id, i.file_path, i.creation_date, i.image_location
+                FROM images_in_collection i
+                LEFT JOIN user_image ui
+                    ON i.id = ui.image_id AND ui.user_id = {user_id}
+                WHERE ui.image_id IS NULL -- Exclude images already reviewed by the user
+            )
+            SELECT *
+            FROM unreviewed_images
+            ORDER BY creation_date ASC
+            LIMIT 1;
+
+            """
+
+        results = self._execute_sql(query, True)
+        return results[0][0]
+
+    @typechecked
+    def get_next_image_ids(self, user_id: int, config_id: int, current_id: int, next_images: int = 1) -> List[int]:
+        next_images = max(1, next_images)
+        query = f"""WITH user_images_in_config AS (
+                    SELECT i.id AS image_id, i.creation_date
+                    FROM image i
+                    INNER JOIN collection c
+                        ON i.creation_date BETWEEN c.start_date AND c.end_date
+                    INNER JOIN user_collection uc
+                        ON uc.collection_id = c.id
+                    WHERE uc.user_id = {user_id}
+                    AND c.id = {config_id}
+                )
+                SELECT image_id
+                FROM user_images_in_config
+                WHERE creation_date > (
+                    SELECT creation_date
+                    FROM image
+                    WHERE id = {current_id}
+                )
+                ORDER BY creation_date ASC
+                LIMIT {next_images}
+
+            """
+
+        results = self._execute_sql(query, True)
+        return [result[0] for result in results]
+
+    @typechecked
+    def get_previous_image_id(self, user_id: int, config_id: int, current_id: int):
+        query = f"""WITH user_images_in_config AS (
+                    SELECT i.id AS image_id, i.creation_date
+                    FROM image i
+                    INNER JOIN collection c
+                        ON i.creation_date BETWEEN c.start_date AND c.end_date
+                    INNER JOIN user_collection uc
+                        ON uc.collection_id = c.id
+                    WHERE uc.user_id = {user_id}
+                    AND c.id = {config_id}
+                )
+                SELECT image_id
+                FROM user_images_in_config
+                WHERE creation_date < (
+                    SELECT creation_date
+                    FROM image
+                    WHERE id = {current_id}
+                )
+                ORDER BY creation_date DESC
+                LIMIT 1;
+                """
+        results = self._execute_sql(query, True)
+        return results[0][0]
+
 
 def get_db() -> ImageTinderDatabase:
     """Get the database handler."""

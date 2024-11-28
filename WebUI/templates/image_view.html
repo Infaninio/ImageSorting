@@ -48,6 +48,20 @@
 <script>
   let currentRating = 0; // Variable to store the current rating
 
+  // Function to update the star rating display
+  function updateRatingDisplay(rating) {
+    const stars = document.querySelectorAll('.rate i');
+    currentRating = rating + 1; // Store the new rating
+
+    stars.forEach((star, index) => {
+      if (index < rating) {
+        star.classList.add('selected'); // Highlight stars up to the rating
+      } else {
+        star.classList.remove('selected'); // Unhighlight remaining stars
+      }
+    });
+  }
+
   // Function to set the rating state
   function updateRating(selectedIndex) {
     const stars = document.querySelectorAll('.rate i');
@@ -62,46 +76,58 @@
     });
   }
 
-  // Add click event listeners to each star
-  document.querySelectorAll('.rate i').forEach((star, index) => {
+   // Add click event listeners to each star
+   document.querySelectorAll('.rate i').forEach((star, index) => {
     star.addEventListener('click', () => {
       updateRating(index);  // Update the rating state on click
     });
   });
 
-  // Function to handle page redirection and send the rating (via AJAX)
-  function redirectToPage(page) {
-    console.log("Redirecting to page:", page);
+  // Function to handle navigation (previous, next, trash)
+  function navigateImage(action) {
+    const imageContainer = document.getElementById("image_container");
+    const imageId = imageContainer.src.split("/").pop(); // Extract current image ID
 
-    // Set the page and rating values
-    const pageInput = document.getElementById('pageInput');
-    const ratingInput = document.getElementById('ratingInput');
-    const image_id = document.getElementById("image_container")
-    pageInput.value = page;
-    ratingInput.value = currentRating;
+    // Prepare form data
+    const formData = new FormData();
+    formData.append("page", action); // Action: 'next', 'previous', 'trash'
+    formData.append("rating", currentRating);
+    formData.append("image_id", imageId);
 
-    // Send the data via AJAX
-    fetch('/images/review', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        page: page,
-        rating: currentRating,
-        image_id: image_id.src,
-      })
+    // Send POST request to submit the review and get the next image
+    fetch("/images/review", {
+      method: "POST",
+      body: formData
     })
-      .then(response => response.json())  // Expecting a JSON response with the new image path
+      .then(response => response.json())
       .then(data => {
         if (data.success) {
-          // Update the image src with the new image path
-          document.getElementById('image_container').src = data.new_image_path;
+          // Update the image source with the new image path
+          if (data.new_image_path) {
+            imageContainer.src = data.new_image_path;
+          }
+
+          // Update the star rating for the new image
+          if (data.rating !== undefined) {
+            updateRatingDisplay(data.rating);
+          }
+        } else if (data.redirect_url) {
+          // Redirect if no more images are available
+          window.location.href = data.redirect_url;
         } else {
-          console.error('Error:', data.error_message);
+          console.error("Failed to navigate to the next image.");
         }
       })
-      .catch(error => console.error('Error:', error));
+      .catch(error => {
+        console.error("Error:", error);
+      });
   }
+
+  // Attach navigation events
+  document.getElementById("left-arrow-box").addEventListener("click", () => navigateImage("previous"));
+  document.querySelector(".arrow:not(#left-arrow-box)").addEventListener("click", () => navigateImage("next"));
+  document.querySelector(".trash").addEventListener("click", () => navigateImage("trash"));
 </script>
+
+
 {% endblock %}
