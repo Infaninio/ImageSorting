@@ -15,13 +15,13 @@
 
 {% block footer %}
 <div class="footer-item">
-  <span class="trash" onclick="redirectToPage('trash')">
+  <span class="trash">
     <span></span>
     <i></i>
   </span>
 </div>
 <div class="footer-item" id="rating-box">
-  <div class="arrow" id="left-arrow-box" onclick="redirectToPage('previous')">
+  <div class="arrow" id="left-arrow-box">
     <span></span>
     <span></span>
     <span></span>
@@ -29,7 +29,7 @@
   <span class="rate" id="star-rating">
     <i>★</i><i>★</i><i>★</i><i>★</i><i>★</i>
   </span>
-  <div class="arrow" onclick="redirectToPage('next')">
+  <div class="arrow">
     <span></span>
     <span></span>
     <span></span>
@@ -51,7 +51,7 @@
   // Function to update the star rating display
   function updateRatingDisplay(rating) {
     const stars = document.querySelectorAll('.rate i');
-    currentRating = rating + 1; // Store the new rating
+    currentRating = rating; // Store the new rating
 
     stars.forEach((star, index) => {
       if (index < rating) {
@@ -133,7 +133,6 @@
   function navigateImage(action) {
     const imageContainer = document.getElementById("image_container");
     const imageId = imageContainer.src.split("/").pop(); // Extract current image ID
-
     // Prepare form data
     const formData = new FormData();
     formData.append("page", action); // Action: 'next', 'previous', 'trash'
@@ -154,13 +153,12 @@
           if (preloadedImages[newImagePath]) {
             const { img, rating } = preloadedImages[newImagePath];
             imageContainer.src = img.src; // Use preloaded image
-            updateRatingDisplay(rating); // Update rating
+            updateRatingDisplay(data.rating); // Update rating
           } else {
             imageContainer.src = newImagePath; // Fallback to fetching new image
             updateRatingDisplay(data.rating);
           }
 
-          preloadAdjacentImages(newImagePath.split("/").pop()); // Preload the next set
         } else if (data.redirect_url) {
           // Redirect if no more images are available
           window.location.href = data.redirect_url;
@@ -195,7 +193,7 @@
     };
 
     // Send the resize data to the server via AJAX
-    fetch('/resize-image', {
+    fetch('/images/resize-image', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

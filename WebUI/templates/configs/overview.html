@@ -24,3 +24,39 @@
 <a href="/configs/newconfig">Create a new Collection</a>
 
 {% endblock %}
+
+
+{% block end_script %}
+<script>
+  // Function to send the viewport size to the server
+  function sendViewportSize() {
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    // Send the viewport size via AJAX to the server
+    fetch('/images/resize-image', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        width: viewportWidth,
+        height: viewportHeight
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log('Viewport size sent successfully:', data);
+    })
+    .catch(error => {
+      console.error('Error sending viewport size:', error);
+    });
+  }
+
+  // Send the viewport size on page load
+  window.addEventListener('load', sendViewportSize);
+
+  // Send the viewport size on window resize
+  window.addEventListener('resize', sendViewportSize);
+</script>
+{% endblock %}

@@ -7,20 +7,6 @@ from .database import get_db
 bp = Blueprint("images", __name__, url_prefix="/images")
 
 
-class Image:
-    """Simple class for handling images."""
-
-    def __hash__(self) -> int:
-        """Build hash of image."""
-        raise NotImplementedError
-
-    def get_image(self) -> str:
-        raise NotImplementedError
-
-    def get_preview(self) -> str:
-        raise NotImplementedError
-
-
 @bp.route("/", methods=("GET", "POST"))
 def overview():
     """Overviewpage of the configurations."""
@@ -102,7 +88,9 @@ def image(image_id: str):
         image_io.seek(0)
     else:
         image = db.get_image(image_id=int(image_id[3:]))
-        image.get_image().save(image_io, format="PNG")
+        image.get_image(
+            image_size=(session["vp_width"], session["vp_height"]) if "vp_height" in session else None
+        ).save(image_io, format="PNG")
         image_io.seek(0)
     return send_file(image_io, as_attachment=False, mimetype="image/png")
 
@@ -132,3 +120,12 @@ def get_adjacent_images_extended(current_image_id):
     previous_images.append({"image_path": f"/images/id_{previous_image_id}", "rating": previous_image_rating})
 
     return jsonify({"next": next_images, "previous": previous_images})
+
+
+@bp.post("resize-image")
+def set_image_size():
+    """Set the image size for the current session."""
+    if request.method == "POST":
+        session["vp_width"] = request.json["width"]
+        session["vp_height"] = request.json["height"]
+    return jsonify({"success": True})

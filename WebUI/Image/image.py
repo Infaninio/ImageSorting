@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Tuple
 
 from caching import load_image
 from PIL import Image
@@ -54,10 +54,15 @@ class Custom_Image:
 
         return img
 
-    def get_image(self):
+    def get_image(self, image_size: Optional[Tuple[int, int]] = None):
         """Load and return the image, applying orientation if needed."""
         if not self.image:
             self._load_image_from_nextcloud()
+        if image_size:
+            img = self.image.copy()
+            img.thumbnail(image_size)
+            return img
+
         return self.image
 
     def get_preview(self):
