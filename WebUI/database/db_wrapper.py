@@ -228,7 +228,7 @@ class ImageTinderDatabase:
         query = f"""SELECT * FROM image WHERE image.id={image_id}"""
         result = self._execute_sql(query, True)[0]
 
-        return Custom_Image(path=result[1], location=result[3], date=result[2])
+        return Custom_Image(image_id=result[0], path=result[1], location=result[3], date=result[2])
 
     @typechecked
     def get_review(self, user_id: int, image_id: int) -> Optional[Dict[str, Any]]:

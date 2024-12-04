@@ -1,10 +1,8 @@
 import logging
-import os
 from datetime import datetime
-from io import BytesIO
 from typing import Optional
 
-from nc_py_api import Nextcloud
+from caching import load_image
 from PIL import Image
 from PIL.ExifTags import IFD, TAGS
 from pillow_heif import register_heif_opener
@@ -16,17 +14,12 @@ register_heif_opener()
 class Custom_Image:
     """Class for images stored on Nextcloud."""
 
-    nextcloud_instance = Nextcloud(
-        nextcloud_url="https://cloud.trauberg.de",
-        nc_auth_user=os.environ["NEXTCLOUD_USER"],
-        nc_auth_pass=os.environ["NEXTCLOUD_PASSWORD"],
-    )
-
-    def __init__(self, path: str, location: Optional[str] = None, date: Optional[str] = None):
+    def __init__(self, image_id: int, path: str, location: Optional[str] = None, date: Optional[str] = None):
         """Represent a custom image with metadata and functionality to interact with Nextcloud.
 
         Args:
         ----
+            image_id (int): Unique identifier of the database
             path (str): Path to the file on Nextcloud
             location (str, optional): Location of the image. Defaults to None.
             date (str, optional): Date of the image when taken. Defaults to None.
@@ -35,10 +28,10 @@ class Custom_Image:
         self.location: Optional[str] = location
         self.date: Optional[datetime] = date
         self.image: Optional[Image.ImageFile.ImageFile] = None
+        self.id: int = image_id
 
     def _load_image_from_nextcloud(self):
-        rgb_image = self.nextcloud_instance.files.download(self.path)
-        self.image = Image.open(BytesIO(rgb_image))
+        self.image = load_image(self.id, self.path)
         self.image = self._apply_orientation(self.image)
 
     def _apply_orientation(self, img: Image.Image) -> Image.Image:
