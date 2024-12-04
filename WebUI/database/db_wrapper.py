@@ -260,7 +260,7 @@ class ImageTinderDatabase:
         self,
         user_id: int,
         config_id: int,
-    ) -> int:
+    ) -> Optional[int]:
         query = f"""WITH images_in_collection AS (
                 SELECT i.id, i.file_path, i.creation_date, i.image_location
                 FROM image i
@@ -283,6 +283,8 @@ class ImageTinderDatabase:
             """
 
         results = self._execute_sql(query, True)
+        if not results:
+            return None
         return results[0][0]
 
     @typechecked

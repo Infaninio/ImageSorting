@@ -58,14 +58,18 @@ def review():
 
         # Determine the next image ID based on action
         if action == "next":
-            next_image_id = db.get_next_image_ids(user_id, int(session["config_id"]), image_id)[0]
+            next_image_id = db.get_next_image_ids(user_id, int(session["config_id"]), image_id)
+            if next_image_id:
+                next_image_id = next_image_id[0]
         elif action == "previous":
             next_image_id = db.get_previous_image_id(user_id, int(session["config_id"]), image_id)
         elif action == "trash":
             db.add_or_update_review(
                 user_id, image_id, review={"trash": True}
             )  # Custom function to mark image as deleted
-            next_image_id = db.get_next_image_ids(user_id, int(session["config_id"]), image_id)[0]
+            next_image_id = db.get_next_image_ids(user_id, int(session["config_id"]), image_id)
+            if next_image_id:
+                next_image_id = next_image_id[0]
         else:
             return jsonify({"success": False, "message": "Invalid action"})
 
@@ -82,6 +86,8 @@ def review():
             return jsonify({"success": False, "redirect_url": url_for("configs.overview")})
 
     next_image_id = db.get_starting_image_id(user_id, int(session["config_id"]))
+    if not next_image_id:
+        return redirect(url_for("configs.overview"))
     return render_template("image_view.html", image_path=f"/images/id_{next_image_id}")
 
 
