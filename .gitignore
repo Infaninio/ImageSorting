@@ -164,3 +164,6 @@ cython_debug/
 # Ignore sqlite databases
 *.sqlite
 *.ipynb
+
+# Ignore everything in the caching folder
+Cache
