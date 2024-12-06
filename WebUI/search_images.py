@@ -32,7 +32,8 @@ def get_image_files(dir: str, nextcloud_instance: Nextcloud) -> List[str]:
     return image_files
 
 
-if __name__ == "__main__":
+def main():
+    """Search for images in the nextcloud and add to database."""
     nc = Nextcloud(
         nextcloud_url="https://cloud.trauberg.de",
         nc_auth_user=os.environ["NEXTCLOUD_USER"],
@@ -41,5 +42,9 @@ if __name__ == "__main__":
     database = ImageTinderDatabase(database_name="./ImageSorting.sqlite")
 
     images = get_image_files("/Photos/", nc)
-    for image in images:
-        database.add_or_update_image(Custom_Image(image))
+    for image in images[:200]:
+        database.add_or_update_image(Custom_Image(image_id=0, path=image))
+
+
+if __name__ == "__main__":
+    main()

@@ -1,5 +1,5 @@
-import json
 import os
+import random
 import sqlite3
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -177,17 +177,23 @@ class ImageTinderDatabase:
 
     @typechecked
     def get_collection_info(self, collection_id: int, user_id: int) -> Collection:
-        query = f"""SELECT collection.name, collection.start_date, collection.end_date
+        query = f"""SELECT collection.name, collection.start_date, collection.end_date, collection.best_images
                     FROM collection
                     WHERE collection.id={collection_id};"""
         collection = self._execute_sql(query, get_result=True)
         start_date = collection[0][1]
         end_date = collection[0][2]
+        best_images = collection[0][3]
         query = f"""SELECT i.id AS image_id, i.file_path, i.creation_date, i.image_location,
-                    COALESCE(ui.rating, 'no_rating') AS user_rating
-                    FROM image i LEFT JOIN user_image ui ON i.id = ui.image_id AND ui.user_id = {user_id}
-                    WHERE i.creation_date BETWEEN '{start_date}' AND '{end_date}';"""
+                COALESCE(ui.rating, 'no_rating') AS user_rating
+                FROM image i LEFT JOIN user_image ui ON i.id = ui.image_id AND ui.user_id = {user_id}
+                WHERE i.creation_date BETWEEN '{start_date}' AND '{end_date}';"""
         images = self._execute_sql(query, get_result=True)
+
+        if best_images:
+            preview_image = random.choice([int(x.strip()) for x in best_images.split(",")])
+        else:
+            preview_image = images[0][0]
 
         collection = Collection(
             id=collection_id,
@@ -195,7 +201,7 @@ class ImageTinderDatabase:
             images=len(images),
             start_date=start_date,
             end_date=end_date,
-            preview_image=images[0][0],
+            preview_image=preview_image,
         )
 
         return collection
@@ -231,27 +237,26 @@ class ImageTinderDatabase:
         return Custom_Image(image_id=result[0], path=result[1], location=result[3], date=result[2])
 
     @typechecked
-    def get_review(self, user_id: int, image_id: int) -> Optional[Dict[str, Any]]:
+    def get_review(self, user_id: int, image_id: int) -> Optional[float]:
         query = f"""SELECT rating
                    FROM user_image
                    WHERE user_id = {user_id} AND image_id = {image_id};"""
         return_value = self._execute_sql(query, True)
         if return_value:
-            return json.loads(return_value[0][0])
+            return return_value[0][0]
         else:
             return None
 
     @typechecked
-    def add_or_update_review(self, user_id: int, image_id: int, review: Dict[str, Any]):
+    def add_or_update_review(self, user_id: int, image_id: int, review: float, trash: bool = False):
         old_review = self.get_review(user_id=user_id, image_id=image_id)
 
-        if old_review:
-            old_review.update(review)
-            query = f"""UPDATE user_image SET rating='{json.dumps(old_review)}'
+        if old_review is not None:
+            query = f"""UPDATE user_image SET rating={review}, deleted={trash}
                         WHERE user_id={user_id} AND image_ID={image_id};"""
         else:
-            query = f"""INSERT INTO user_image (user_id, image_id, rating)
-                        VALUES ({user_id}, {image_id}, '{json.dumps(review)}');"""
+            query = f"""INSERT INTO user_image (user_id, image_id, rating, deleted)
+                        VALUES ({user_id}, {image_id}, {review}, {trash}) ;"""
 
         self._execute_sql(query)
 

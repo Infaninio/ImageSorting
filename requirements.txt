@@ -4,3 +4,5 @@ pre-commit
 pillow_heif
 nc_py_api
 typeguard
+flask-executor
+apscheduler

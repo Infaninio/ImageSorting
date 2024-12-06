@@ -1,6 +1,10 @@
 """A WebUi for ImageTinder to access a lokal nextcloud."""
 
 from flask import Flask, redirect, render_template
+from flask_executor import Executor
+from scheduler import get_scheduler
+
+executor = Executor()
 
 
 def create_app(test_config=None) -> Flask:
@@ -21,6 +25,9 @@ def create_app(test_config=None) -> Flask:
     app.config.from_mapping(
         SECRET_KEY="dev",  # pragma: allowlist secret
     )
+
+    app.config["EXECUTOR_MAX_WORKERS"] = 5
+    executor.init_app(app)
 
     # a simple page that says hello
 
@@ -47,5 +54,8 @@ def create_app(test_config=None) -> Flask:
     from . import images
 
     app.register_blueprint(images.bp)
+
+    scheduler = get_scheduler()
+    scheduler.start()
 
     return app

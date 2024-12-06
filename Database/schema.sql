@@ -14,7 +14,8 @@ CREATE TABLE collection (
   id INTEGER PRIMARY KEY,
   name TEXT NOT NULL,
   start_date DATE NOT NULL,
-  end_date DATE NOT NULL
+  end_date DATE NOT NULL,
+  best_images TEXT
 );
 
 CREATE TABLE user_collection (
@@ -35,7 +36,7 @@ CREATE TABLE image (
 CREATE TABLE user_image (
   user_id INTEGER,
   image_id INTEGER,
-  rating TEXT NOT NULL,
+  rating FLOAT NOT NULL,
   deleted BOOLEAN NOT NULL default 0,
   FOREIGN KEY (user_id) REFERENCES user (id),
   FOREIGN KEY (image_id) REFERENCES image (id),

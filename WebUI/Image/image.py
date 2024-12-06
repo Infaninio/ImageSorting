@@ -2,11 +2,12 @@ import logging
 from datetime import datetime
 from typing import Optional, Tuple
 
-from caching import load_image
 from PIL import Image
 from PIL.ExifTags import IFD, TAGS
 from pillow_heif import register_heif_opener
 from typeguard import typechecked
+
+from ..caching import load_image
 
 register_heif_opener()
 
@@ -30,8 +31,8 @@ class Custom_Image:
         self.image: Optional[Image.ImageFile.ImageFile] = None
         self.id: int = image_id
 
-    def _load_image_from_nextcloud(self):
-        self.image = load_image(self.id, self.path)
+    def _load_image(self):
+        self.image = load_image(image_id=self.id, image_path=self.path)
         self.image = self._apply_orientation(self.image)
 
     def _apply_orientation(self, img: Image.Image) -> Image.Image:
@@ -57,7 +58,7 @@ class Custom_Image:
     def get_image(self, image_size: Optional[Tuple[int, int]] = None):
         """Load and return the image, applying orientation if needed."""
         if not self.image:
-            self._load_image_from_nextcloud()
+            self._load_image()
         if image_size:
             img = self.image.copy()
             img.thumbnail(image_size)
@@ -93,7 +94,7 @@ class Custom_Image:
         if self.date is not None:
             return self.date
         if self.image is None:
-            self._load_image_from_nextcloud()
+            self._load_image()
 
         try:
             self.date = self._extract_date(self.image)

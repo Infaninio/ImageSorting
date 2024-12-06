@@ -1,7 +1,9 @@
 import io
 
+from caching import remove_old_images
 from flask import Blueprint, jsonify, redirect, render_template, request, send_file, session, url_for
 
+from .app import executor
 from .database import get_db
 
 bp = Blueprint("images", __name__, url_prefix="/images")
@@ -40,7 +42,7 @@ def review():
         rating = int(request.form.get("rating", 0))  # Default to 0 if no rating
         print(f"Image: {image_id} with rating {rating}")
         # Save the review in the database
-        db.add_or_update_review(user_id=user_id, image_id=image_id, review={"star": rating})
+        db.add_or_update_review(user_id=user_id, image_id=image_id, review=rating)
 
         # Determine the next image ID based on action
         if action == "next":
@@ -50,9 +52,7 @@ def review():
         elif action == "previous":
             next_image_id = db.get_previous_image_id(user_id, int(session["config_id"]), image_id)
         elif action == "trash":
-            db.add_or_update_review(
-                user_id, image_id, review={"trash": True}
-            )  # Custom function to mark image as deleted
+            db.add_or_update_review(user_id, image_id, review=0, trash=True)  # Custom function to mark image as deleted
             next_image_id = db.get_next_image_ids(user_id, int(session["config_id"]), image_id)
             if next_image_id:
                 next_image_id = next_image_id[0]
@@ -62,7 +62,7 @@ def review():
         if next_image_id:
             # Fetch the star rating for the next image
             next_image_rating = db.get_review(user_id, next_image_id)
-            next_image_rating = next_image_rating.get("star", 0) if next_image_rating else 0
+            next_image_rating = next_image_rating if next_image_rating else 0
 
             return jsonify(
                 {"success": True, "new_image_path": f"/images/id_{next_image_id}", "rating": next_image_rating}
@@ -92,6 +92,8 @@ def image(image_id: str):
             image_size=(session["vp_width"], session["vp_height"]) if "vp_height" in session else None
         ).save(image_io, format="PNG")
         image_io.seek(0)
+
+    executor.submit(remove_old_images)
     return send_file(image_io, as_attachment=False, mimetype="image/png")
 
 
@@ -111,12 +113,12 @@ def get_adjacent_images_extended(current_image_id):
     next_images = []
     for next_image_id in next_image_ids:
         next_image_rating = db.get_review(user_id, next_image_id)
-        next_image_rating = next_image_rating.get("star", 0) if next_image_rating else 0
+        next_image_rating = next_image_rating if next_image_rating else 0
         next_images.append({"image_path": f"/images/id_{next_image_id}", "rating": next_image_rating})
 
     previous_images = []
     previous_image_rating = db.get_review(user_id, previous_image_id)
-    previous_image_rating = previous_image_rating.get("star", 0) if previous_image_rating else 0
+    previous_image_rating = previous_image_rating if previous_image_rating else 0
     previous_images.append({"image_path": f"/images/id_{previous_image_id}", "rating": previous_image_rating})
 
     return jsonify({"next": next_images, "previous": previous_images})
