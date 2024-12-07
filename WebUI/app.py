@@ -2,7 +2,8 @@
 
 from flask import Flask, redirect, render_template
 from flask_executor import Executor
-from scheduler import get_scheduler
+
+from .scheduler import get_scheduler
 
 executor = Executor()
 

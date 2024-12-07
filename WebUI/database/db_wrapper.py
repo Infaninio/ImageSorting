@@ -345,6 +345,18 @@ class ImageTinderDatabase:
         results = self._execute_sql(query, True)
         return results[0][0]
 
+    @typechecked
+    def can_user_access_image(self, user_id: int, image_id: int) -> bool:
+        query = f"""SELECT 1
+                FROM user_collection uc
+                JOIN collection c ON uc.collection_id = c.id
+                JOIN image i ON i.creation_date BETWEEN c.start_date AND c.end_date
+                WHERE uc.user_id = {user_id} AND i.id = {image_id};"""
+        if self._execute_sql(query, True):
+            return True
+        else:
+            return False
+
 
 def get_db() -> ImageTinderDatabase:
     """Get the database handler."""

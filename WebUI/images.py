@@ -32,6 +32,8 @@ def init_review(config_id: str):
 @bp.route("review", methods=("GET", "POST"))
 def review():
     """Load first review page, or get next review image."""
+    if "user_id" not in session:
+        return redirect("/auth/login")
     user_id = session.get("user_id")
     db = get_db()
     if request.method == "POST":
@@ -82,11 +84,17 @@ def image(image_id: str):
     """Serve a image."""
     db = get_db()
     image_io = io.BytesIO()
+    user_id = session.get("user_id", 0)
     if image_id[:3] == "pre":
+        if not db.can_user_access_image(user_id=user_id, image_id=int(image_id[4:])):
+            print(f"User {user_id} cant access image {int(image_id[4:])}")
+            return jsonify({"success": False})
         image = db.get_image(image_id=int(image_id[4:]))
         image.get_preview().save(image_io, format="PNG")
         image_io.seek(0)
     else:
+        if not db.can_user_access_image(user_id=user_id, image_id=int(image_id[3:])):
+            return jsonify({"success": False})
         image = db.get_image(image_id=int(image_id[3:]))
         image.get_image(
             image_size=(session["vp_width"], session["vp_height"]) if "vp_height" in session else None

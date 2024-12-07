@@ -1,6 +1,7 @@
 from apscheduler.schedulers.background import BackgroundScheduler
-from caching import remove_old_images, static_cache
-from database import ImageTinderDatabase
+
+from .caching import remove_old_images, static_cache
+from .database import ImageTinderDatabase
 
 
 def cache_static_images():
