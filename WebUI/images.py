@@ -88,13 +88,13 @@ def image(image_id: str):
     if image_id[:3] == "pre":
         if not db.can_user_access_image(user_id=user_id, image_id=int(image_id[4:])):
             print(f"User {user_id} cant access image {int(image_id[4:])}")
-            return jsonify({"success": False})
+            return "You are not allowed to view or review this image", 401
         image = db.get_image(image_id=int(image_id[4:]))
         image.get_preview().save(image_io, format="PNG")
         image_io.seek(0)
     else:
         if not db.can_user_access_image(user_id=user_id, image_id=int(image_id[3:])):
-            return jsonify({"success": False})
+            return "You are not allowed to view or review this image", 401
         image = db.get_image(image_id=int(image_id[3:]))
         image.get_image(
             image_size=(session["vp_width"], session["vp_height"]) if "vp_height" in session else None
