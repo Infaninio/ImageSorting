@@ -6,6 +6,8 @@ from typing import Dict, Optional
 from nc_py_api import Nextcloud
 from PIL import Image
 from pillow_heif import register_heif_opener
+from flask import current_app
+import logging
 
 register_heif_opener()
 CACHE_DIR = "./Cache/"
@@ -15,12 +17,15 @@ MAX_IMAGES = 200
 if not os.path.exists(CACHE_DIR):
     os.makedirs(CACHE_DIR)
 
-
-nextcloud_instance = Nextcloud(
-    nextcloud_url="https://cloud.trauberg.de",
-    nc_auth_user=os.environ["NEXTCLOUD_USER"],
-    nc_auth_pass=os.environ["NEXTCLOUD_PASSWORD"],
-)
+try:
+    nextcloud_instance = Nextcloud(
+        nextcloud_url="https://cloud.trauberg.de",
+        nc_auth_user=os.environ["NEXTCLOUD_USER"],
+        nc_auth_pass=os.environ["NEXTCLOUD_PASSWORD"],
+    )
+except:
+    logging.error("Could not connect to nextcloud. Please check credentials. Switching to debug mode")
+    nextcloud_instance = None
 
 
 def load_image(image_path: str, image_id: Optional[int] = None) -> Image.Image:
@@ -42,8 +47,11 @@ def load_image(image_path: str, image_id: Optional[int] = None) -> Image.Image:
     if image_id and os.path.exists(f"{CACHE_DIR}{image_id}.jpg"):
         image = Image.open(f"{CACHE_DIR}{image_id}.jpg")
     else:
-        rgb_image = nextcloud_instance.files.download(image_path)
-        image = Image.open(BytesIO(rgb_image))
+        if current_app.debug or not nextcloud_instance:
+            image = Image.open(image_path)
+        else:
+            rgb_image = nextcloud_instance[0].files.download(image_path)
+            image = Image.open(BytesIO(rgb_image))
         if image_id:
             image.save(f"{CACHE_DIR}{image_id}.jpg", exif=image.getexif())
     return image
