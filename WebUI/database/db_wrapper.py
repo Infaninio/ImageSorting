@@ -155,7 +155,6 @@ class ImageTinderDatabase:
         name: str,
         start_date: datetime,
         end_date: datetime,
-        user_id: int,
         id: Optional[int] = None,
     ):
         if id:
@@ -167,7 +166,6 @@ class ImageTinderDatabase:
                         VALUES ('{name}', '{start_date}', '{end_date}')
                         RETURNING id;"""
             new_id = self._execute_sql(query, get_result=True)
-            self.add_user_to_collection(user_id, new_id[0][0])
 
         self.connection.commit()
 
