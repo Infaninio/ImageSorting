@@ -1,3 +1,4 @@
+import logging
 import os
 import random
 import sqlite3
@@ -7,7 +8,7 @@ from typing import Any, Dict, List, Optional
 from flask import g
 from typeguard import typechecked
 from werkzeug.security import check_password_hash, generate_password_hash
-import logging
+
 from WebUI.Image import Custom_Image
 
 
@@ -160,7 +161,7 @@ class ImageTinderDatabase:
         start_date: datetime,
         end_date: datetime,
         id: Optional[int] = None,
-    ):
+    ) -> None:
         if id:
             query = f"""UPDATE collection SET name='{name}', start_date='{start_date}', end_date='{end_date}'
                         WHERE id={id};"""
@@ -169,7 +170,7 @@ class ImageTinderDatabase:
             query = f"""INSERT INTO collection (name, start_date, end_date)
                         VALUES ('{name}', '{start_date}', '{end_date}')
                         RETURNING id;"""
-            new_id = self._execute_sql(query, get_result=True)
+            self._execute_sql(query, get_result=True)
 
         self.connection.commit()
 
@@ -215,6 +216,14 @@ class ImageTinderDatabase:
         if not result:
             return None
         return result[0][0]
+
+    def add_image_to_database(self, image: Custom_Image):
+        date = image.get_date()
+        location = image.get_location()
+
+        query = f"""INSERT INTO image (file_path, creation_date, image_location)
+                    VALUES ('{image.path}', '{date}', '{location}')"""
+        self._execute_sql(query)
 
     def add_or_update_image(self, image: Custom_Image, update: bool = False):
         img_id = self.get_image_id(image.path)
