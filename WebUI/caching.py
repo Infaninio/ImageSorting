@@ -1,13 +1,13 @@
+import logging
 import os
 from io import BytesIO
 from pathlib import Path
 from typing import Dict, Optional
 
+from flask import current_app
 from nc_py_api import Nextcloud
 from PIL import Image
 from pillow_heif import register_heif_opener
-from flask import current_app
-import logging
 
 register_heif_opener()
 CACHE_DIR = "./Cache/"
@@ -23,7 +23,7 @@ try:
         nc_auth_user=os.environ["NEXTCLOUD_USER"],
         nc_auth_pass=os.environ["NEXTCLOUD_PASSWORD"],
     )
-except:
+except KeyError:
     logging.error("Could not connect to nextcloud. Please check credentials. Switching to debug mode")
     nextcloud_instance = None
 
