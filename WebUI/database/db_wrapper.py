@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional
 from flask import g
 from typeguard import typechecked
 from werkzeug.security import check_password_hash, generate_password_hash
-
+import logging
 from WebUI.Image import Custom_Image
 
 
@@ -105,7 +105,11 @@ class ImageTinderDatabase:
         try:
             self.get_user_id_from_table("Admin", "test123")
         except UserNotExisting:
-            admin_pass = os.environ.get("IMAGE_SORTING_ADMIN_PASS")
+            if os.environ.get("IMAGE_SORTING_ADMIN_PASS"):
+                admin_pass = os.environ.get("IMAGE_SORTING_ADMIN_PASS")
+            else:
+                admin_pass = "test123"
+                logging.error("No admin password set. Using default password 'test123'")
             self.create_user("Admin", admin_pass)
         except WrongPassword:
             pass
