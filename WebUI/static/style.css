@@ -97,14 +97,21 @@ body {
   justify-content: center;
 }
 .card-image {
-	min-height: 15rem; /* layout hack */
-  background-size: cover;
+  width: 15rem;
+  height: 15rem;
   padding: 0;
   border-radius: 0;
+  overflow: hidden; /* Ensure the image doesn't overflow the container */
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .card-image > img {
-	width: 100%;
+  width: 15rem;
+  height: 15rem;
+  object-fit: cover; /* Ensure the image covers the entire container while maintaining aspect ratio */
+  margin: auto;
 }
 
 .card {
@@ -115,6 +122,8 @@ body {
 	overflow: hidden;
 	box-shadow: 0 0 3rem -1rem rgba(0.5,0.5,0.5,0.5);
 	transition: transform 0.1s ease-in-out, box-shadow 0.1s;
+  justify-content: center;
+  align-items: center;
 }
 
 .card:hover {
