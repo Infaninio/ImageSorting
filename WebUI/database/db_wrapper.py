@@ -1,3 +1,4 @@
+import logging
 import os
 import random
 import sqlite3
@@ -105,7 +106,11 @@ class ImageTinderDatabase:
         try:
             self.get_user_id_from_table("Admin", "test123")
         except UserNotExisting:
-            admin_pass = os.environ.get("IMAGE_SORTING_ADMIN_PASS")
+            if os.environ.get("IMAGE_SORTING_ADMIN_PASS"):
+                admin_pass = os.environ.get("IMAGE_SORTING_ADMIN_PASS")
+            else:
+                admin_pass = "test123"
+                logging.error("No admin password set. Using default password 'test123'")
             self.create_user("Admin", admin_pass)
         except WrongPassword:
             pass
@@ -155,9 +160,8 @@ class ImageTinderDatabase:
         name: str,
         start_date: datetime,
         end_date: datetime,
-        user_id: int,
         id: Optional[int] = None,
-    ):
+    ) -> None:
         if id:
             query = f"""UPDATE collection SET name='{name}', start_date='{start_date}', end_date='{end_date}'
                         WHERE id={id};"""
@@ -166,8 +170,7 @@ class ImageTinderDatabase:
             query = f"""INSERT INTO collection (name, start_date, end_date)
                         VALUES ('{name}', '{start_date}', '{end_date}')
                         RETURNING id;"""
-            new_id = self._execute_sql(query, get_result=True)
-            self.add_user_to_collection(user_id, new_id[0][0])
+            self._execute_sql(query, get_result=True)
 
         self.connection.commit()
 
@@ -213,6 +216,14 @@ class ImageTinderDatabase:
         if not result:
             return None
         return result[0][0]
+
+    def add_image_to_database(self, image: Custom_Image):
+        date = image.get_date()
+        location = image.get_location()
+
+        query = f"""INSERT INTO image (file_path, creation_date, image_location)
+                    VALUES ('{image.path}', '{date}', '{location}')"""
+        self._execute_sql(query)
 
     def add_or_update_image(self, image: Custom_Image, update: bool = False):
         img_id = self.get_image_id(image.path)

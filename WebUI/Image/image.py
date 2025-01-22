@@ -15,7 +15,7 @@ register_heif_opener()
 class Custom_Image:
     """Class for images stored on Nextcloud."""
 
-    def __init__(self, image_id: int, path: str, location: Optional[str] = None, date: Optional[str] = None):
+    def __init__(self, image_id: int, path: str, location: Optional[str] = None, date: Optional[datetime] = None):
         """Represent a custom image with metadata and functionality to interact with Nextcloud.
 
         Args:
