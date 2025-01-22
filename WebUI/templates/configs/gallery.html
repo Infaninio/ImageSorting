@@ -1,0 +1,109 @@
+<!doctype html>
+<title>ImageTinder</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='gallery.css') }}">
+
+<div id="gallery">
+
+</div>
+
+<script>
+    // Function to handle the window resize event
+    const preloadImages = 12
+    var columnCnt = 0;
+    var images = [];
+    var lastImageId = NaN
+    var columns = [];
+
+    function initializeWebsite() {
+        for (let index = 0; index < preloadImages; index++) {
+            addNewImage();
+        }
+    }
+
+    function buildWebsite() {
+        var gallery = document.getElementById("gallery");
+        columns = []
+        newChildren = []
+
+        for (let index = 0; index < columnCnt; index++) {
+            var column = document.createElement("div");
+            column.className = "gallery-column";
+            columns.push([column, 0]);
+            newChildren.push(column)
+            // gallery.appendChild(column);
+        }
+        gallery.replaceChildren(...newChildren)
+    }
+
+    function addNewImage() {
+        fetch(`/images/get_next_image/${lastImageId}`)
+            .then(response => response.json())
+            .then(data => {
+                // Preload the next set of images
+                images.push([data.imagePath, data.relativeHeight, data.rating]);
+                addImageToColumn(data.imagePath, data.relativeHeight, data.rating)
+                lastImageId = data.id
+            })
+            .catch(error => console.error("Error preloading images:", error));
+
+    }
+
+    function addImageToColumn(imagePath, height, rating){
+        var imageDiv = document.createElement("div");
+        imageDiv.className = "gallery-image";
+        var image = document.createElement("img")
+        image.src = imagePath;
+        imageDiv.appendChild(image);
+        // Choose smallest column
+        col = 0
+        smallest_val = columns[0][1]
+        for (let index = 0; index < columns.length; index++) {
+            const element = columns[index];
+            if (element[1] < smallest_val) {
+                col = index;
+                smallest_val = element[1];
+            }
+        }
+        columns[col][0].appendChild(imageDiv);
+        columns[col][1] = columns[col][1] + height
+    }
+
+    function resortImages() {
+        for (let index = 0; index < images.length; index++) {
+            const element = images[index]
+            addImageToColumn(element[0], element[1], element[2])
+        }
+    }
+
+    function fetchImages() {
+        fetch(`images/get_next_image/${lastImageId}`)
+            .then(response => response.json())
+            .then(data => {
+                // Preload the next set of images
+                data.next.forEach(imageData => {
+                    preloadImage(imageData.image_path, imageData.rating);
+                });
+
+                // Preload the previous set of images
+                data.previous.forEach(imageData => {
+                    preloadImage(imageData.image_path, imageData.rating);
+                });
+            })
+            .catch(error => console.error("Error fetching next image:", error));
+    }
+
+    function handleResize() {
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const maxWidth = 400;
+        columnCnt = Math.ceil(viewportWidth / maxWidth);
+        console.log(columnCnt);
+        var gallery = document.getElementById("gallery");
+        gallery.style.gridTemplateColumns = "1fr ".repeat(columnCnt);
+        buildWebsite();
+        resortImages();
+    }
+    handleResize();
+    initializeWebsite();
+    window.addEventListener('resize', handleResize);
+</script>

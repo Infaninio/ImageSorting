@@ -19,3 +19,12 @@ def overview():
         "configs/overview.html",
         configs=collections,
     )
+
+
+@bp.route("/gallery/<collection_id>", methods=("GET", "POST"))
+def gallery(collection_id):
+    """Show all images of the collection in a gallery."""
+    session["config_id"] = collection_id
+    return render_template(
+        "configs/gallery.html",
+    )

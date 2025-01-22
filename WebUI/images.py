@@ -132,6 +132,32 @@ def get_adjacent_images_extended(current_image_id):
     return jsonify({"next": next_images, "previous": previous_images})
 
 
+@bp.route("get_next_image/<current_image_id>", methods=("GET",))
+def get_next_image(current_image_id):
+    """Fetch multiple adjacent images for preloading (e.g., next 3, previous 3)."""
+    user_id = session.get("user_id")
+    db = get_db()
+    config_id = int(session["config_id"])
+    if current_image_id == "NaN":
+        next_image_id = db.get_first_collection_image(config_id=config_id)
+    else:
+        current_image_id = int(current_image_id[3:])
+        next_image_id = db.get_next_image_ids(user_id, config_id, current_image_id)
+
+    next_image_rating = db.get_review(user_id=user_id, image_id=next_image_id)
+    image = db.get_image(next_image_id).get_image()
+    next_image_relative_height = image.height / image.width
+
+    return jsonify(
+        {
+            "imagePath": f"/images/id_{next_image_id}",
+            "rating": next_image_rating,
+            "relativeHeight": next_image_relative_height,
+            "id": next_image_id,
+        }
+    )
+
+
 @bp.post("resize-image")
 def set_image_size():
     """Set the image size for the current session."""

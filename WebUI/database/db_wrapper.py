@@ -88,6 +88,7 @@ class Collection:
             "name": self.name,
             "start_date": self.start_date_str,
             "end_date": self.end_date_str,
+            "view_uri": f"/configs/gallery/{self.id}",
         }
 
 
@@ -296,6 +297,22 @@ class ImageTinderDatabase:
             ORDER BY creation_date ASC
             LIMIT 1;
 
+            """
+
+        results = self._execute_sql(query, True)
+        if not results:
+            return None
+        return results[0][0]
+
+    @typechecked
+    def get_first_collection_image(self, config_id: int):
+        query = f"""SELECT i.id, i.file_path, i.creation_date, i.image_location
+                FROM image i
+                INNER JOIN collection c
+                    ON i.creation_date BETWEEN c.start_date AND c.end_date
+                WHERE c.id = {config_id}
+                ORDER BY creation_date ASC
+                LIMIT 1;
             """
 
         results = self._execute_sql(query, True)
