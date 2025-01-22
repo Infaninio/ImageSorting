@@ -32,6 +32,11 @@ python -m WebUI.search_images
 
 ## Development
 
+### [Optional] Install virtual environment
+```shell
+python -m venv .venv
+```
+
 ### Use pre-commit hooks
 
 Install with
