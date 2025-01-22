@@ -15,6 +15,7 @@
       <h2>{{link.name}}</h2>
       <p> {{link.start_date}} - {{link.end_date}}</p>
     </a>
+    <div class="card-links "><a href="{{ link.view_uri }}">Gallerie</a><a href="{{ link.url }}">Review</a></div>
   </li>
   {% endfor %}
 </ul>
