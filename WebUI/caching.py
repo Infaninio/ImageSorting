@@ -50,7 +50,7 @@ def load_image(image_path: str, image_id: Optional[int] = None) -> Image.Image:
         if current_app.debug or not nextcloud_instance:
             image = Image.open(image_path)
         else:
-            rgb_image = nextcloud_instance[0].files.download(image_path)
+            rgb_image = nextcloud_instance.files.download(image_path)
             image = Image.open(BytesIO(rgb_image))
         if image_id:
             image.save(f"{CACHE_DIR}{image_id}.jpg", exif=image.getexif())
