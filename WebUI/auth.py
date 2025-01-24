@@ -1,5 +1,6 @@
 import functools
 import logging
+from uuid import uuid4
 
 from flask import (
     Blueprint,
@@ -65,6 +66,7 @@ def login():
         if error is None:
             session.clear()
             session["user_id"] = user
+            session["uuid"] = str(uuid4())
             return redirect(url_for("configs.overview"))
 
         flash(error)

@@ -36,7 +36,7 @@
     }
 
     function addNewImage() {
-        fetch(`/images/get_next_image/${lastImageId}`)
+        fetch(`/images/get_next_gallery_image/${lastImageId}`)
             .then(response => response.json())
             .then(data => {
                 // Preload the next set of images
@@ -73,23 +73,6 @@
             const element = images[index]
             addImageToColumn(element[0], element[1], element[2])
         }
-    }
-
-    function fetchImages() {
-        fetch(`images/get_next_image/${lastImageId}`)
-            .then(response => response.json())
-            .then(data => {
-                // Preload the next set of images
-                data.next.forEach(imageData => {
-                    preloadImage(imageData.image_path, imageData.rating);
-                });
-
-                // Preload the previous set of images
-                data.previous.forEach(imageData => {
-                    preloadImage(imageData.image_path, imageData.rating);
-                });
-            })
-            .catch(error => console.error("Error fetching next image:", error));
     }
 
     function handleResize() {

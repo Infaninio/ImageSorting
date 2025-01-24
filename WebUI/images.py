@@ -4,6 +4,7 @@ from caching import remove_old_images
 from flask import Blueprint, jsonify, redirect, render_template, request, send_file, session, url_for
 
 from .app import executor
+from .configs import customBackend
 from .database import get_db
 
 bp = Blueprint("images", __name__, url_prefix="/images")
@@ -132,28 +133,21 @@ def get_adjacent_images_extended(current_image_id):
     return jsonify({"next": next_images, "previous": previous_images})
 
 
-@bp.route("get_next_image/<current_image_id>", methods=("GET",))
-def get_next_image(current_image_id):
+@bp.route("get_next_gallery_image/<current_image_id>", methods=("GET",))
+def get_next_gallery_image(current_image_id):
     """Fetch multiple adjacent images for preloading (e.g., next 3, previous 3)."""
-    user_id = session.get("user_id")
     db = get_db()
-    config_id = int(session["config_id"])
-    if current_image_id == "NaN":
-        next_image_id = db.get_first_collection_image(config_id=config_id)
-    else:
-        current_image_id = int(current_image_id[3:])
-        next_image_id = db.get_next_image_ids(user_id, config_id, current_image_id)
-
-    next_image_rating = db.get_review(user_id=user_id, image_id=next_image_id)
-    image = db.get_image(next_image_id).get_image()
+    user_id = session["user_id"]
+    image_id = customBackend.get_next_image(session["uuid"])
+    next_image_rating = db.get_review(user_id=user_id, image_id=image_id)
+    image = db.get_image(image_id).get_image()
     next_image_relative_height = image.height / image.width
-
     return jsonify(
         {
-            "imagePath": f"/images/id_{next_image_id}",
+            "imagePath": f"/images/id_{image_id}",
             "rating": next_image_rating,
             "relativeHeight": next_image_relative_height,
-            "id": next_image_id,
+            "id": image_id,
         }
     )
 

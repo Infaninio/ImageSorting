@@ -1,6 +1,36 @@
+from typing import Any, Dict, Generator
+
 from flask import Blueprint, redirect, render_template, session
+from typeguard import typechecked
 
 from .database import get_db
+
+
+class Backend:
+    """Backend class to manage sessions and generators."""
+
+    def __init__(self):
+        """Backend class to manage sessions and generators."""
+        self.generators: Dict[int, Generator[None, None, Dict[str, Any]]] = {}
+
+    @typechecked
+    def add_session(self, session_id: str, config_id: int):
+        print(f"-----------\n Adding Session with ID {session_id}")
+        self.generators[session_id] = self.image_gallery_generator(config_id=config_id)
+
+    @staticmethod
+    def image_gallery_generator(config_id: int) -> Generator[None, None, Dict[str, Any]]:
+        db = get_db()
+        ids = db.get_all_image_ids(config_id=config_id)
+
+        for image_id in ids:
+            yield image_id
+
+    def get_next_image(self, session_id: int):
+        return next(self.generators[session_id])
+
+
+customBackend = Backend()
 
 bp = Blueprint("configs", __name__, url_prefix="/configs")
 
@@ -24,7 +54,7 @@ def overview():
 @bp.route("/gallery/<collection_id>", methods=("GET", "POST"))
 def gallery(collection_id):
     """Show all images of the collection in a gallery."""
-    session["config_id"] = collection_id
+    customBackend.add_session(session["uuid"], int(collection_id))
     return render_template(
         "configs/gallery.html",
     )
