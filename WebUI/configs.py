@@ -1,4 +1,4 @@
-from typing import Any, Dict, Generator
+from typing import Dict, Generator, Optional
 
 from flask import Blueprint, redirect, render_template, session
 from typeguard import typechecked
@@ -11,23 +11,28 @@ class Backend:
 
     def __init__(self):
         """Backend class to manage sessions and generators."""
-        self.generators: Dict[int, Generator[None, None, Dict[str, Any]]] = {}
+        self.generators: Dict[int, Generator[None, None, int]] = {}
 
     @typechecked
     def add_session(self, session_id: str, config_id: int):
         print(f"-----------\n Adding Session with ID {session_id}")
         self.generators[session_id] = self.image_gallery_generator(config_id=config_id)
 
+    @typechecked
     @staticmethod
-    def image_gallery_generator(config_id: int) -> Generator[None, None, Dict[str, Any]]:
+    def image_gallery_generator(config_id: int) -> Generator[int, None, None]:
         db = get_db()
         ids = db.get_all_image_ids(config_id=config_id)
 
         for image_id in ids:
             yield image_id
 
-    def get_next_image(self, session_id: int):
-        return next(self.generators[session_id])
+    @typechecked
+    def get_next_image(self, session_id: str) -> Optional[int]:
+        try:
+            return next(self.generators[session_id])
+        except StopIteration:
+            return None
 
 
 customBackend = Backend()

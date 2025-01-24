@@ -8,15 +8,18 @@
 
 <script>
     // Function to handle the window resize event
-    const preloadImages = 12
+    const preloadImages = 25
     var columnCnt = 0;
     var images = [];
     var lastImageId = NaN
     var columns = [];
-
-    function initializeWebsite() {
-        for (let index = 0; index < preloadImages; index++) {
-            addNewImage();
+    var all_images = false;
+    async function initializeWebsite() {
+        if (! all_images) {
+            for (let index = 0; index < preloadImages; index++) {
+                await new Promise(r => setTimeout(r, 200));
+                addNewImage();
+            }
         }
     }
 
@@ -40,15 +43,20 @@
             .then(response => response.json())
             .then(data => {
                 // Preload the next set of images
-                images.push([data.imagePath, data.relativeHeight, data.rating]);
-                addImageToColumn(data.imagePath, data.relativeHeight, data.rating)
-                lastImageId = data.id
+                if (data.relativeHeight < 0) {
+                    all_images = true;
+                } else {
+                    images.push([data.imagePath, data.relativeHeight, data.rating]);
+                    addImageToColumn(data.imagePath, data.relativeHeight, data.rating)
+                    lastImageId = data.id
+                }
+
             })
             .catch(error => console.error("Error preloading images:", error));
 
     }
 
-    function addImageToColumn(imagePath, height, rating){
+    function addImageToColumn(imagePath, height, rating) {
         var imageDiv = document.createElement("div");
         imageDiv.className = "gallery-image";
         var image = document.createElement("img")
@@ -80,13 +88,27 @@
         const viewportHeight = window.innerHeight;
         const maxWidth = 400;
         columnCnt = Math.ceil(viewportWidth / maxWidth);
-        console.log(columnCnt);
         var gallery = document.getElementById("gallery");
         gallery.style.gridTemplateColumns = "1fr ".repeat(columnCnt);
         buildWebsite();
         resortImages();
     }
+
+    function getVerticalScrollPercentage(elm) {
+        let p = elm.parentNode || document.body
+        return (elm.scrollTop || p.scrollTop) / (p.scrollHeight - p.clientHeight) * 100
+    }
+
+    function onScrollLoad(ev) {
+        const scrollPercent = getVerticalScrollPercentage(document.body);
+        if (scrollPercent > 80) {
+            console.log("Scrolled around edge of page, loading more")
+            initializeWebsite()
+        }
+    }
+
     handleResize();
     initializeWebsite();
     window.addEventListener('resize', handleResize);
+    window.addEventListener("scrollend", onScrollLoad);
 </script>

@@ -139,6 +139,9 @@ def get_next_gallery_image(current_image_id):
     db = get_db()
     user_id = session["user_id"]
     image_id = customBackend.get_next_image(session["uuid"])
+    if image_id is None:
+        return jsonify({"imagePath": "", "rating": -1, "relativeHeight": -1.0})
+
     next_image_rating = db.get_review(user_id=user_id, image_id=image_id)
     image = db.get_image(image_id).get_image()
     next_image_relative_height = image.height / image.width
