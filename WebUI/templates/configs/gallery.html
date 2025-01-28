@@ -1,26 +1,38 @@
-<!doctype html>
-<title>ImageTinder</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='gallery.css') }}">
+{% extends 'base.html' %}
 
+
+{% block header %}
+  <h1>{% block title %}1 N!CE Sammlung{% endblock %}</h1>
+  <link rel="stylesheet" href="{{ url_for('static', filename='gallery.css') }}">
+{% endblock %}
+
+{% block content %}
 <div id="gallery">
 
 </div>
+{% endblock %}
+
+
+{% block end_script %}
 
 <script>
     // Function to handle the window resize event
-    const preloadImages = 25
+    var preloadImages = 25
     var columnCnt = 0;
     var images = [];
     var lastImageId = NaN
     var columns = [];
     var all_images = false;
-    async function initializeWebsite() {
-        if (! all_images) {
+    var busyLoading = 0;
+    async function fetchImageBatch() {
+        if (! all_images && busyLoading <= 0) {
+            busyLoading = busyLoading + preloadImages;
             for (let index = 0; index < preloadImages; index++) {
-                await new Promise(r => setTimeout(r, 200));
+                await new Promise(r => setTimeout(r, 20));
                 addNewImage();
             }
         }
+
     }
 
     function buildWebsite() {
@@ -51,17 +63,42 @@
                     lastImageId = data.id
                 }
 
+                busyLoading = busyLoading -1;
+
             })
             .catch(error => console.error("Error preloading images:", error));
 
+    }
+
+    function getRatingOverlay(stars) {
+        var overlay = document.createElement("div");
+        overlay.className = "image-overlay";
+        var rateSpan = document.createElement("span");
+        rateSpan.className = "staticRate";
+        for (let index = 0; index < 5; index++) {
+            var star = document.createElement("i");
+            if (index < stars) {
+                star.className = "selected";
+            }
+            star.textContent = "★";
+            rateSpan.appendChild(star)
+        }
+        overlay.appendChild(rateSpan);
+        return overlay;
     }
 
     function addImageToColumn(imagePath, height, rating) {
         var imageDiv = document.createElement("div");
         imageDiv.className = "gallery-image";
         var image = document.createElement("img")
+
         image.src = imagePath;
         imageDiv.appendChild(image);
+
+        if (rating > 0) {
+            var overlay = getRatingOverlay(rating);
+            imageDiv.appendChild(overlay);
+        }
         // Choose smallest column
         col = 0
         smallest_val = columns[0][1]
@@ -103,12 +140,13 @@
         const scrollPercent = getVerticalScrollPercentage(document.body);
         if (scrollPercent > 80) {
             console.log("Scrolled around edge of page, loading more")
-            initializeWebsite()
+            fetchImageBatch();
         }
     }
 
     handleResize();
-    initializeWebsite();
+    fetchImageBatch();
     window.addEventListener('resize', handleResize);
     window.addEventListener("scrollend", onScrollLoad);
 </script>
+{% endblock %}
