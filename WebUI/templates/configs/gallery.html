@@ -95,10 +95,14 @@
         image.src = imagePath;
         imageDiv.appendChild(image);
 
-        if (rating > 0) {
-            var overlay = getRatingOverlay(rating);
-            imageDiv.appendChild(overlay);
-        }
+        image.onload = () => {
+        // Optionally, handle actions after image loads (e.g., adding margin-bottom if needed)
+            if (rating > 0) {
+                var overlay = getRatingOverlay(rating);
+                imageDiv.appendChild(overlay);
+            }
+        };
+
         // Choose smallest column
         col = 0
         smallest_val = columns[0][1]
