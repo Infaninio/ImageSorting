@@ -147,7 +147,7 @@ def get_next_gallery_image(current_image_id):
     next_image_relative_height = image.height / image.width
     return jsonify(
         {
-            "imagePath": f"/images/id_{image_id}",
+            "imagePath": f"/images/pre_{image_id}",
             "rating": next_image_rating,
             "relativeHeight": next_image_relative_height,
             "id": image_id,
