@@ -1,5 +1,3 @@
-import logging
-import os
 import random
 import sqlite3
 from datetime import datetime
@@ -104,17 +102,6 @@ class ImageTinderDatabase:
             Name of the sqlite file, by default "ImageSorting.sqlite"
         """
         self.connection = sqlite3.connect(database_name)
-        try:
-            self.get_user_id_from_table("Admin", "test123")
-        except UserNotExisting:
-            if os.environ.get("IMAGE_SORTING_ADMIN_PASS"):
-                admin_pass = os.environ.get("IMAGE_SORTING_ADMIN_PASS")
-            else:
-                admin_pass = "test123"
-                logging.error("No admin password set. Using default password 'test123'")
-            self.create_user("Admin", admin_pass)
-        except WrongPassword:
-            pass
 
     def _execute_sql(self, statement: str, get_result: bool = False) -> Optional[List[Any]]:
         with self.connection:
