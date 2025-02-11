@@ -1,4 +1,5 @@
 import os
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import List
 
@@ -32,6 +33,12 @@ def get_image_files(dir: str, nextcloud_instance: Nextcloud) -> List[str]:
     return image_files
 
 
+def process_image(image):
+    """Process a single image by adding or updating it in the database."""
+    database = ImageTinderDatabase(database_name="./ImageSorting.sqlite")
+    database.add_or_update_image(Custom_Image(image_id=0, path=image))
+
+
 def main():
     """Search for images in the nextcloud and add to database."""
     nc = Nextcloud(
@@ -39,11 +46,15 @@ def main():
         nc_auth_user=os.environ["NEXTCLOUD_USER"],
         nc_auth_pass=os.environ["NEXTCLOUD_PASSWORD"],
     )
-    database = ImageTinderDatabase(database_name="./ImageSorting.sqlite")
 
     images = get_image_files("/Photos/", nc)
-    for image in images[:200]:
-        database.add_or_update_image(Custom_Image(image_id=0, path=image))
+    # Parallelize the add_or_update_image calls
+    with ThreadPoolExecutor() as executor:
+        futures = [executor.submit(process_image, image) for image in images]
+
+        # Optionally wait for all tasks to complete (if needed)
+        for future in futures:
+            future.result()
 
 
 if __name__ == "__main__":
