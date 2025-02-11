@@ -47,7 +47,8 @@ def load_image(image_path: str, image_id: Optional[int] = None) -> Image.Image:
     if image_id and os.path.exists(f"{CACHE_DIR}{image_id}.jpg"):
         image = Image.open(f"{CACHE_DIR}{image_id}.jpg")
     else:
-        if current_app.debug and not nextcloud_instance:
+        if not nextcloud_instance or current_app.config["DEBUG"]:
+            # If not in cache or debug mode, load from local file system
             image = Image.open(image_path)
         else:
             rgb_image = nextcloud_instance.files.download(image_path)

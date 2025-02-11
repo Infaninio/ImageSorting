@@ -35,7 +35,7 @@ def get_image_files(dir: str, nextcloud_instance: Nextcloud) -> List[str]:
 def main():
     """Search for images in the nextcloud and add to database."""
     nc = Nextcloud(
-        nextcloud_url="https://cloud.trauberg.de",
+        nextcloud_url=os.environ["NEXTCLOUD_URL"],
         nc_auth_user=os.environ["NEXTCLOUD_USER"],
         nc_auth_pass=os.environ["NEXTCLOUD_PASSWORD"],
     )
