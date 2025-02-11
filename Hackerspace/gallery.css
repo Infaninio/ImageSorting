@@ -1,0 +1,18 @@
+#gallery {
+    width: 100%;
+    display: grid;
+    column-gap: 1rem;
+}
+
+.gallery-column {
+    display: flex;
+    flex-direction: column;
+    row-gap: 1rem;
+}
+
+.gallery-image img {
+    width: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}

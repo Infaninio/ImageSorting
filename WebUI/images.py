@@ -4,6 +4,7 @@ from caching import remove_old_images
 from flask import Blueprint, jsonify, redirect, render_template, request, send_file, session, url_for
 
 from .app import executor
+from .configs import customBackend
 from .database import get_db
 
 bp = Blueprint("images", __name__, url_prefix="/images")
@@ -130,6 +131,28 @@ def get_adjacent_images_extended(current_image_id):
     previous_images.append({"image_path": f"/images/id_{previous_image_id}", "rating": previous_image_rating})
 
     return jsonify({"next": next_images, "previous": previous_images})
+
+
+@bp.route("get_next_gallery_image/<current_image_id>", methods=("GET",))
+def get_next_gallery_image(current_image_id):
+    """Fetch multiple adjacent images for preloading (e.g., next 3, previous 3)."""
+    db = get_db()
+    user_id = session["user_id"]
+    image_id = customBackend.get_next_image(session["uuid"])
+    if image_id is None:
+        return jsonify({"imagePath": "", "rating": -1, "relativeHeight": -1.0})
+
+    next_image_rating = db.get_review(user_id=user_id, image_id=image_id)
+    image = db.get_image(image_id).get_image()
+    next_image_relative_height = image.height / image.width
+    return jsonify(
+        {
+            "imagePath": f"/images/pre_{image_id}",
+            "rating": next_image_rating,
+            "relativeHeight": next_image_relative_height,
+            "id": image_id,
+        }
+    )
 
 
 @bp.post("resize-image")

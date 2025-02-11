@@ -88,6 +88,7 @@ class Collection:
             "name": self.name,
             "start_date": self.start_date_str,
             "end_date": self.end_date_str,
+            "view_uri": f"/configs/gallery/{self.id}",
         }
 
 
@@ -302,6 +303,21 @@ class ImageTinderDatabase:
         if not results:
             return None
         return results[0][0]
+
+    @typechecked
+    def get_all_image_ids(self, config_id: int) -> List[int]:
+        query = f"""SELECT i.id
+                FROM image i
+                INNER JOIN collection c
+                    ON i.creation_date BETWEEN c.start_date AND c.end_date
+                WHERE c.id = {config_id}
+                ORDER BY creation_date ASC
+            """
+
+        results = self._execute_sql(query, True)
+        if not results:
+            return []
+        return [result[0] for result in results]
 
     @typechecked
     def get_next_image_ids(self, user_id: int, config_id: int, current_id: int, next_images: int = 1) -> List[int]:
