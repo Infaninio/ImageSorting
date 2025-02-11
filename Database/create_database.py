@@ -7,7 +7,7 @@ from werkzeug.security import generate_password_hash
 def main():
     """Create Image Sorting database."""
     # Create a SQLite database with name 'ImageSorting.sqlite'
-    conn = sqlite3.connect("ImageSorting2.sqlite")
+    conn = sqlite3.connect("ImageSorting.sqlite")
     c = conn.cursor()
 
     # Load the schema.sql file to create tables in the database
