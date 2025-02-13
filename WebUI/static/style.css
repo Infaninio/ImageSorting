@@ -114,6 +114,11 @@ body {
   align-items: center;
 }
 
+#overviewPage {
+  margin-top: 4rem;
+  margin-bottom: 4rem;
+}
+
 .card-list {
   display: flex;
   flex-wrap: wrap;
