@@ -2,6 +2,32 @@
 
 Image sorting web application using Python and Flask and an sqlite database.
 
+
+## SetUp in Container
+To follow along you need to install python, pip virtualenv and git in the container.
+
+### Setup Project
+#### Create Database with
+```shell
+python ./Database/create_database.py
+```
+
+#### Create cron job for update database with new images.
+First setup the necessary environment variables
+```shell
+export NEXTCLOUD_URL='https://cloud.yourDomain.com'
+export NEXTCLOUD_USER='martin'
+export NEXTCLOUD_PASSWORD='asdf1234'
+
+chmod +x WebUI/search_images.py
+```
+
+#### Edit crontab
+```shell
+crontab -e
+0 1 * * * /bin/sh -c 'source ~/ImageSorting/.venv/bin/activate && cd ~/ImageSorting && ~/ImageSorting/.venv/bin/python3 -m WebUI.search_images >> /var/log/cron.log 2>&1'
+```
+
 ## Project Structure
 
 ### Database
