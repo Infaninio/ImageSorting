@@ -371,6 +371,15 @@ class ImageTinderDatabase:
         else:
             return False
 
+    @typechecked
+    def add_collection(self, title: str, start_date: datetime, end_date: datetime, user_id: int) -> int:
+        query = f"""INSERT INTO collection (name, start_date, end_date)
+                VALUES ('{title}', '{start_date}', '{end_date}')
+                RETURNING id;"""
+        results = self._execute_sql(query, True)
+        self.add_user_to_collection(user_id=user_id, collection_id=results[0][0])
+        return results[0][0]
+
 
 def get_db() -> ImageTinderDatabase:
     """Get the database handler."""

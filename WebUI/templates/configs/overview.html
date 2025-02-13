@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block content %}
-<ul class="card-list">
+<ul class="card-list" id="collection-list">
   {% for link in configs %}
   <li class="card">
       <a class="card-image" href="{{ link.url }}">
@@ -19,6 +19,27 @@
   </li>
   {% endfor %}
 </ul>
+
+<!-- Overlay -->
+<div id="overlay" class="overlay">
+  <div class="form-container">
+      <h2>Create Collection</h2>
+      <form id="collection-form">
+          <label for="title">Title:</label>
+          <input type="text" id="title" name="title" required>
+
+          <label for="start-date">Start Date:</label>
+          <input type="date" id="start-date" name="start_date" required>
+
+          <label for="end-date">End Date:</label>
+          <input type="date" id="end-date" name="end_date" required>
+
+          <button type="submit">Submit</button>
+          <button type="button" onclick="closeOverlay()">Cancel</button>
+      </form>
+  </div>
+</div>
+
 <br>
 <br>
 <br>
@@ -26,7 +47,7 @@
 {% endblock %}
 
 {% block footer %}
-<a href="/configs/newconfig">Create a new Collection</a>
+<button id="create-collection-btn">Create New Collection</button>
 {% endblock %}
 
 
@@ -62,5 +83,111 @@
 
   // Send the viewport size on window resize
   window.addEventListener('resize', sendViewportSize);
+
+  function openOverlay() {
+    document.getElementById('overlay').style.display = 'flex';
+}
+
+  function closeOverlay() {
+      document.getElementById('overlay').style.display = 'none';
+  }
+
+  document.getElementById('create-collection-btn').addEventListener('click', openOverlay);
+
+  document.getElementById('collection-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const title = document.getElementById('title').value;
+      const startDate = document.getElementById('start-date').value;
+      const endDate = document.getElementById('end-date').value;
+
+      console.log(`Title: ${title}, Start Date: ${startDate}, End Date: ${endDate}`);
+
+      // Here, you can add logic to handle the form submission,
+      // such as sending data to a server or updating the UI.
+
+      const newConfigData = {
+        title: title,
+        startDate: startDate,
+        endDate: endDate,
+      };
+
+      fetch('/configs/new_config', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(newConfigData) // Send viewport size as JSON
+    })
+      .then(response => response.json())
+      .then(data => {
+        // Handle the server response (optional, e.g., update UI or cache new image)
+        if (data.success) {
+          // Add new data to collection list
+          console.log('New config added successfully!');
+          const listItem = document.createElement('li');
+          listItem.className = 'card';
+
+          // Create the card image link and image
+          const cardImageLink = document.createElement('a');
+          cardImageLink.href = data.url;
+          cardImageLink.className = 'card-image';
+
+          const img = document.createElement('img');
+          img.src = data.image_uri;
+          img.alt = "A fox";
+
+          cardImageLink.appendChild(img);
+
+          // Create the card description
+          const cardDescriptionLink = document.createElement('a');
+          cardDescriptionLink.href = data.url;  // Assuming you want to keep this for consistency
+          cardDescriptionLink.target = "_blank";
+          cardDescriptionLink.className = 'card-description';
+
+          const h2 = document.createElement('h2');
+          h2.textContent = data.name;
+
+          const p = document.createElement('p');
+          p.textContent = `${data.start_date} - ${data.end_date}`;
+
+          cardDescriptionLink.appendChild(h2);
+          cardDescriptionLink.appendChild(p);
+
+          // Create the card links
+          const cardLinksDiv = document.createElement('div');
+          cardLinksDiv.className = 'card-links';
+
+          const galleryLink = document.createElement('a');
+          galleryLink.href = data.view_uri;
+          galleryLink.textContent = 'Gallerie';
+
+          const reviewLink = document.createElement('a');
+          reviewLink.href = data.url;
+          reviewLink.textContent = 'Review';
+
+          cardLinksDiv.appendChild(galleryLink);
+          cardLinksDiv.appendChild(reviewLink);
+
+          // Append all parts to the list item
+          listItem.appendChild(cardImageLink);
+          listItem.appendChild(cardDescriptionLink);
+          listItem.appendChild(cardLinksDiv);
+          var wholeList = document.getElementById('collection-list');
+          wholeList.appendChild(listItem)
+
+
+
+        } else {
+          console.error('Error resizing image');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+
+
+      closeOverlay();
+  });
 </script>
 {% endblock %}

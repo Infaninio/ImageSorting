@@ -1,6 +1,8 @@
+import logging
+from datetime import datetime
 from typing import Dict, Generator, Optional
 
-from flask import Blueprint, redirect, render_template, session
+from flask import Blueprint, jsonify, redirect, render_template, request, session
 from typeguard import typechecked
 
 from .database import get_db
@@ -63,3 +65,23 @@ def gallery(collection_id):
     return render_template(
         "configs/gallery.html",
     )
+
+
+@bp.route("/new_config", methods=("GET", "POST"))
+def new_config():
+    """Create a new configuration."""
+    if request.method == "POST":
+        data = request.get_json()
+        name = data.get("title")
+        startDate = datetime.strptime(data.get("startDate"), "%Y-%m-%d")
+        endDate = datetime.strptime(data.get("endDate"), "%Y-%m-%d")
+
+        logging.debug(f"new_config: {request.get_json()}")
+        db = get_db()
+        collection_id = db.add_collection(name, startDate, endDate, user_id=session["user_id"])
+        collection = db.get_collection_info(collection_id, user_id=session["user_id"])
+        result = collection.dict
+        result["success"] = True
+        return jsonify(result)
+    else:
+        return jsonify({"success": False})

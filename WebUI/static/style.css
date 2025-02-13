@@ -147,13 +147,6 @@ body {
   box-shadow: 0 0 3rem -1rem rgba(0.5,0.5,0.5,0.5);
 	transition: transform 0.1s ease-in-out, box-shadow 0.1s;
 }
-/* {
-	display: inline-block;
-	width: 90%;
-	max-width: 20rem;
-	margin: 1rem;
-	overflow: hidden;
-} */
 
 .card-links > a:hover {
 	transform: translateY(-0.5rem) scale(1.0125);
@@ -205,6 +198,66 @@ a {
   color: #d5d6d8;
   padding: 10px;
   border-radius: 10px;
+}
+
+button#create-collection-btn {
+  padding: 10px 20px;
+  margin: 20px;
+  cursor: pointer;
+}
+
+.overlay {
+  display: none; /* Hidden by default */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  justify-content: center;
+  align-items: center;
+}
+
+.form-container {
+  background-color: #1c1c1c;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(228, 228, 228, 0.2);
+  width: 400px;
+  text-align: center;
+  color: #d5d6d8;
+}
+
+.form-container h2 {
+  margin-bottom: 20px;
+}
+
+form#collection-form label {
+  display: block;
+  margin-top: 10px;
+}
+
+form#collection-form input[type="text"],
+form#collection-form input[type="date"] {
+  width: calc(100% - 22px);
+  padding: 8px;
+  margin-top: 5px;
+  background-color: #515151;
+  color: #d5d6d8;
+}
+
+form#collection-form button {
+  margin-top: 20px;
+  padding: 10px 15px;
+  cursor: pointer;
+  border-color: #d5d6d8;
+  border-style: solid;
+  border-radius: 50px;
+  color: #d5d6d8;
+  background-color: #515151;
+  transition: transform 0.1s ease-in-out, box-shadow 0.1s;
+  padding-left: 2em;
+  padding-right: 2em;
 }
 
 
@@ -302,33 +355,7 @@ a {
   width: 50px;
 }
 
-.arrow:hover span {
-  animation: animate 2s infinite;
-}
 
-.arrow span:nth-child(2) {
-  animation-delay: -0.2s;
-}
-
-.arrow span:nth-child(3) {
-  animation-delay: -0.4s;
-}
-
-@keyframes animate {
-  0% {
-    opacity: 0;
-    transform: rotate(45deg) translate(-20px, -20px);
-  }
-
-  50% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 0;
-    transform: rotate(45deg) translate(20px, 20px);
-  }
-}
 
 .trash {
   background: #ff6873;
