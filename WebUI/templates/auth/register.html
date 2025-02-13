@@ -5,11 +5,31 @@
 {% endblock %}
 
 {% block content %}
-  <form method="post">
-    <label for="username">Username</label>
-    <input name="username" id="username" required>
-    <label for="password">Password</label>
-    <input type="password" name="password" id="password" required>
-    <input type="submit" value="Register">
-  </form>
+<content id="Image-Content">
+  <div class="container">
+    <div class="login-wrapper">
+      <form method="post">
+        <h1>Register</h1>
+        <div class="input-box">
+          <input type="text" placeholder="Username" name="username" id="username" required>
+          <i class='bx bxs-user'></i>
+        </div>
+        <dive class="input-box">
+          <input type="password" placeholder="Password" name="password" id="password" required>
+          <i class='bx bxs-lock-alt'></i>
+        </dive>
+        <dive class="remember-forget">
+
+        </dive><br>
+        <button type="submit" class="btn" value="login">Register</button>
+      </form>
+      {% if error_message %}
+      <div class="error-message">
+        <p>{{error_message}}</p>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</content>
 {% endblock %}
