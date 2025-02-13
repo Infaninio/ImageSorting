@@ -12,6 +12,7 @@ from pillow_heif import register_heif_opener
 register_heif_opener()
 CACHE_DIR = "./Cache/"
 MAX_IMAGES = 200
+debug = False
 
 # Ensure your download folder exists
 if not os.path.exists(CACHE_DIR):
@@ -26,6 +27,14 @@ try:
 except KeyError:
     logging.error("Could not connect to nextcloud. Please check credentials. Switching to debug mode")
     nextcloud_instance = None
+    debug = True
+
+try:
+    if current_app.config["DEBUG"]:
+        logging.debug("Debug mode enabled")
+        debug = True
+except RuntimeError:
+    pass
 
 
 def load_image(image_path: str, image_id: Optional[int] = None) -> Image.Image:
@@ -47,7 +56,7 @@ def load_image(image_path: str, image_id: Optional[int] = None) -> Image.Image:
     if image_id and os.path.exists(f"{CACHE_DIR}{image_id}.jpg"):
         image = Image.open(f"{CACHE_DIR}{image_id}.jpg")
     else:
-        if not nextcloud_instance or current_app.config["DEBUG"]:
+        if debug:
             # If not in cache or debug mode, load from local file system
             image = Image.open(image_path)
         else:
