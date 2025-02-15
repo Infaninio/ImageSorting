@@ -7,7 +7,8 @@ DROP TABLE IF EXISTS user_image;
 CREATE TABLE user (
   id INTEGER PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
-  password TEXT NOT NULL
+  password TEXT NOT NULL,
+  create_collection BOOLEAN DEFAULT FALSE
 );
 
 CREATE TABLE collection (

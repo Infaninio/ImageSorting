@@ -30,11 +30,15 @@ def main():
             break
 
     # Insert the Admin user into the database
-    c.execute("INSERT INTO user (email, password) VALUES (?, ?)", ("Admin", generate_password_hash(password=password)))
+    c.execute(
+        "INSERT INTO user (email, password, create_collection) VALUES (?, ?, ?)",
+        ("Admin", generate_password_hash(password=password), True),
+    )
 
     # Commit the changes and close the connection
     conn.commit()
     conn.close()
+    print("Database created successfully.")
 
 
 if __name__ == "__main__":
