@@ -70,6 +70,10 @@ def gallery(collection_id):
 @bp.route("/new_config", methods=("GET", "POST"))
 def new_config():
     """Create a new configuration."""
+    db = get_db()
+    if not db.can_user_create_collection(session["user_id"]):
+        return jsonify({"error": "You are not allowed to create a new collection."}), 403
+
     if request.method == "POST":
         data = request.get_json()
         name = data.get("title")
@@ -77,7 +81,6 @@ def new_config():
         endDate = datetime.strptime(data.get("endDate"), "%Y-%m-%d")
 
         logging.debug(f"new_config: {request.get_json()}")
-        db = get_db()
         collection_id = db.add_collection(name, startDate, endDate, user_id=session["user_id"])
         collection = db.get_collection_info(collection_id, user_id=session["user_id"])
         result = collection.dict

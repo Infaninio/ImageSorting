@@ -380,6 +380,14 @@ class ImageTinderDatabase:
         self.add_user_to_collection(user_id=user_id, collection_id=results[0][0])
         return results[0][0]
 
+    @typechecked
+    def can_user_create_collection(self, user_id: int) -> bool:
+        query = f"""SELECT 1 FROM user WHERE id = {user_id} AND create_collection = 1 LIMIT 1;"""
+        if self._execute_sql(query, True):
+            return True
+        else:
+            return False
+
 
 def get_db() -> ImageTinderDatabase:
     """Get the database handler."""
