@@ -167,3 +167,5 @@ cython_debug/
 
 # Ignore everything in the caching folder
 Cache
+
+.env

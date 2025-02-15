@@ -3,10 +3,13 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import List
 
+from dotenv import load_dotenv
 from nc_py_api import Nextcloud
 
 from .database import ImageTinderDatabase
 from .Image import Custom_Image
+
+load_dotenv()
 
 
 def get_image_files(dir: str, nextcloud_instance: Nextcloud) -> List[str]:

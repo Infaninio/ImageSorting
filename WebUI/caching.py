@@ -4,10 +4,12 @@ from io import BytesIO
 from pathlib import Path
 from typing import Dict, Optional
 
-from flask import current_app
+from dotenv import load_dotenv
 from nc_py_api import Nextcloud
 from PIL import Image
 from pillow_heif import register_heif_opener
+
+load_dotenv()
 
 register_heif_opener()
 CACHE_DIR = "./Cache/"
@@ -20,21 +22,21 @@ if not os.path.exists(CACHE_DIR):
 
 try:
     nextcloud_instance = Nextcloud(
-        nextcloud_url="https://cloud.trauberg.de",
+        nextcloud_url=os.environ["NEXTCLOUD_URL"],
         nc_auth_user=os.environ["NEXTCLOUD_USER"],
         nc_auth_pass=os.environ["NEXTCLOUD_PASSWORD"],
     )
-except KeyError:
+except KeyError as err:
+    logging.error(f"Missing environment variable: {err}")
     logging.error("Could not connect to nextcloud. Please check credentials. Switching to debug mode")
     nextcloud_instance = None
     debug = True
 
-try:
-    if current_app.config["DEBUG"]:
-        logging.debug("Debug mode enabled")
-        debug = True
-except RuntimeError:
-    pass
+if os.environ["IMAGE_SORT_DEBUG"]:
+    debug = True
+    logging.basicConfig(level=logging.DEBUG)
+else:
+    logging.basicConfig(level=logging.INFO)
 
 
 def load_image(image_path: str, image_id: Optional[int] = None) -> Image.Image:

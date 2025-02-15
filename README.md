@@ -2,6 +2,15 @@
 
 Image sorting web application using Python and Flask and an sqlite database.
 
+## General Setup
+Use a `.env` file to store your environment variables. The `.env` file should contain the following:
+```shell
+NEXTCLOUD_URL="https://cloud.nextcloud.de"
+NEXTCLOUD_USER="user"
+NEXTCLOUD_PASSWORD="asdf"
+IMAGE_SORT_DEBUG=True
+```
+
 
 ## SetUp in Container
 To follow along you need to install python, pip virtualenv and git in the container.

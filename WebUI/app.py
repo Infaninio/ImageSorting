@@ -1,9 +1,19 @@
 """A WebUi for ImageTinder to access a lokal nextcloud."""
 
+import logging
+import os
+
+from dotenv import load_dotenv
 from flask import Flask, redirect, render_template
 from flask_executor import Executor
 
 from .scheduler import get_scheduler
+
+load_dotenv()
+
+if os.environ.get("IMAGE_SORT_DEBUG") == "True":
+    logging.basicConfig(level=logging.DEBUG)
+
 
 executor = Executor()
 
