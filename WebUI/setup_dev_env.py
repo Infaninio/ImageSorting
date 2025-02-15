@@ -88,8 +88,8 @@ def add_users_to_collections():
 def main():
     """Run the script to setup the development environment."""
     parser = argparse.ArgumentParser()
-    parser.add_argument("--image_dir", "-i", type=Path, required=True)
-    parser.add_argument("--nr_images", "-n", type=int, default=2000)
+    parser.add_argument("--image-dir", "-i", type=Path, required=True)
+    parser.add_argument("--nr-images", "-n", type=int, default=2000)
     args = parser.parse_args()
 
     add_images_to_database(args.image_dir, args.nr_images)
