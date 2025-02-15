@@ -6,9 +6,9 @@
 
 {% block content %}
 <div id="overviewPage">
-<ul class="card-list" id="collection-list">
-  {% for link in configs %}
-  <li class="card">
+  <ul class="card-list" id="collection-list">
+    {% for link in configs %}
+    <li class="card">
       <a class="card-image" href="{{ link.url }}">
         <img src="{{ link.image_uri }}" alt="A fox" />
       </a>
@@ -17,85 +17,187 @@
         <p> {{link.start_date}} - {{link.end_date}}</p>
       </a>
       <div class="card-links "><a href="{{ link.view_uri }}">Gallerie</a><a href="{{ link.url }}">Review</a></div>
-  </li>
-  {% endfor %}
-</ul>
+      {% if can_user_add_user_to_collection %}
+      <button id="add_user_to_collection" onclick="openUserCollectionOverlay({{ link.id }}, '{{link.name}}')">Add User to
+        Collection</button>
+      {% endif %}
 
-<!-- Overlay -->
-<div id="overlay" class="overlay">
-  <div class="form-container">
+    </li>
+    {% endfor %}
+  </ul>
+
+  <!-- Overlay new collection-->
+  <div id="overlay" class="overlay">
+    <div class="form-container">
       <h2>Create Collection</h2>
       <form id="collection-form">
-          <label for="title">Title:</label>
-          <input type="text" id="title" name="title" required>
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title" required>
 
-          <label for="start-date">Start Date:</label>
-          <input type="date" id="start-date" name="start_date" required>
+        <label for="start-date">Start Date:</label>
+        <input type="date" id="start-date" name="start_date" required>
 
-          <label for="end-date">End Date:</label>
-          <input type="date" id="end-date" name="end_date" required>
+        <label for="end-date">End Date:</label>
+        <input type="date" id="end-date" name="end_date" required>
 
-          <button type="submit">Submit</button>
-          <button type="button" onclick="closeOverlay()">Cancel</button>
+        <button type="submit">Submit</button>
+        <button type="button" onclick="closeCollectionOverlay()">Cancel</button>
       </form>
+    </div>
   </div>
-</div>
-
-<br>
-<br>
-<br>
-</div>
-{% endblock %}
-
-{% block footer %}
-<button id="create-collection-btn">Create New Collection</button>
-{% endblock %}
 
 
-{% block end_script %}
-<script>
-  // Function to send the viewport size to the server
-  function sendViewportSize() {
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
+  <!-- Overlay add user to Collection-->
+  <div id="add_user_overlay" class="overlay">
+    <div class="form-container">
+      <h2>Add Users to Collection</h2>
+      <form id="collectionForm">
+        <h1 id="collectionTitle" for="title">Title:</h1>
+        <br>
 
-    // Send the viewport size via AJAX to the server
-    fetch('/images/resize-image', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        width: viewportWidth,
-        height: viewportHeight
+        <button type="button" onclick="addUserToCollection()">Submit</button>
+        <button type="button" onclick="closeUserToCollectionOverlay()">Cancel</button>
+        <br>
+      </form>
+    </div>
+  </div>
+
+  <br>
+  <br>
+  <br>
+
+  {% endblock %}
+
+  {% block footer %}
+  <button id="create-collection-btn">Create New Collection</button>
+  {% endblock %}
+
+
+  {% block end_script %}
+  <script>
+    // Function to send the viewport size to the server
+    function sendViewportSize() {
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+
+      // Send the viewport size via AJAX to the server
+      fetch('/images/resize-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          width: viewportWidth,
+          height: viewportHeight
+        })
       })
-    })
-      .then(response => response.json())
-      .then(data => {
-        console.log('Viewport size sent successfully:', data);
-      })
-      .catch(error => {
-        console.error('Error sending viewport size:', error);
-      });
-  }
+        .then(response => response.json())
+        .then(data => {
+          console.log('Viewport size sent successfully:', data);
+        })
+        .catch(error => {
+          console.error('Error sending viewport size:', error);
+        });
+    }
 
-  // Send the viewport size on page load
-  window.addEventListener('load', sendViewportSize);
+    // Send the viewport size on page load
+    window.addEventListener('load', sendViewportSize);
 
-  // Send the viewport size on window resize
-  window.addEventListener('resize', sendViewportSize);
+    // Send the viewport size on window resize
+    window.addEventListener('resize', sendViewportSize);
 
-  function openOverlay() {
-    document.getElementById('overlay').style.display = 'flex';
-}
+    function openCollectionOverlay() {
+      document.getElementById('overlay').style.display = 'flex';
+    }
 
-  function closeOverlay() {
+    function closeCollectionOverlay() {
       document.getElementById('overlay').style.display = 'none';
-  }
+    }
 
-  document.getElementById('create-collection-btn').addEventListener('click', openOverlay);
+    function getUsers(collectionId) {
+      fetch('/configs/get_users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }, body: JSON.stringify({
+          collectionId: collectionId
+        })
+      })
 
-  document.getElementById('collection-form').addEventListener('submit', function(event) {
+        .then(response => response.json())
+        .then(data => {
+          console.log('Users retrieved successfully:', data);
+          // Handle the retrieved users data
+          const formContainer = document.getElementById('collectionForm');
+          data.forEach(user => {
+            const checkboxLabel = document.createElement('label');
+
+            const checkboxInput = document.createElement('input');
+            checkboxInput.type = 'checkbox';
+            checkboxInput.name = 'access[]';
+            checkboxInput.userId = user.id;
+            checkboxInput.checked = user.selected; // Set the checkbox checked state based on the data
+
+
+            const labelText = document.createTextNode(user.name);
+
+            checkboxLabel.appendChild(checkboxInput);
+            checkboxLabel.appendChild(labelText);
+            checkboxLabel.appendChild(document.createElement('br'));
+
+            formContainer.appendChild(checkboxLabel);
+          });
+          const buttonContainer = document.getElementById('collectionForm');
+          const buttons = Array.from(buttonContainer.getElementsByClassName('button'));
+          buttons.forEach(button => {
+            buttonContainer.appendChild(button);
+          });
+        });
+    }
+
+
+    var collectionId; // Declare a variable to store the selected collection ID
+
+    function openUserCollectionOverlay(collectionId, title) {
+      getUsers(collectionId);
+      document.getElementById('add_user_overlay').style.display = 'flex';
+      document.getElementById('collectionTitle').innerText = title;
+
+      this.collectionId = collectionId; // Store the selected collection ID
+    }
+
+    function addUserToCollection() {
+      var selectedUsers = Array.from(document.querySelectorAll('input[name="access[]"]:checked')).map(input => input.userId);
+      console.log(`Selected Users: ${selectedUsers}`);
+      fetch(`/configs/add_user_to_collection`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }, body: JSON.stringify({
+          collectionId: this.collectionId, // Use the stored collection ID
+          users: selectedUsers
+        })
+      })
+        .then(response => response.json())
+        .then(data => {
+          console.log('Success:', data);
+          document.getElementById('overlay').style.display = 'none';
+        })
+
+        closeUserToCollectionOverlay();
+    }
+
+    function closeUserToCollectionOverlay() {
+      document.getElementById('add_user_overlay').style.display = 'none';
+    }
+
+
+
+
+
+    document.getElementById('create-collection-btn').addEventListener('click', openCollectionOverlay);
+
+    document.getElementById('collection-form').addEventListener('submit', function (event) {
       event.preventDefault();
 
       const title = document.getElementById('title').value;
@@ -114,82 +216,82 @@
       };
 
       fetch('/configs/new_config', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(newConfigData) // Send viewport size as JSON
-    })
-      .then(response => response.json())
-      .then(data => {
-        // Handle the server response (optional, e.g., update UI or cache new image)
-        if (data.success) {
-          // Add new data to collection list
-          console.log('New config added successfully!');
-          const listItem = document.createElement('li');
-          listItem.className = 'card';
-
-          // Create the card image link and image
-          const cardImageLink = document.createElement('a');
-          cardImageLink.href = data.url;
-          cardImageLink.className = 'card-image';
-
-          const img = document.createElement('img');
-          img.src = data.image_uri;
-          img.alt = "A fox";
-
-          cardImageLink.appendChild(img);
-
-          // Create the card description
-          const cardDescriptionLink = document.createElement('a');
-          cardDescriptionLink.href = data.url;  // Assuming you want to keep this for consistency
-          cardDescriptionLink.target = "_blank";
-          cardDescriptionLink.className = 'card-description';
-
-          const h2 = document.createElement('h2');
-          h2.textContent = data.name;
-
-          const p = document.createElement('p');
-          p.textContent = `${data.start_date} - ${data.end_date}`;
-
-          cardDescriptionLink.appendChild(h2);
-          cardDescriptionLink.appendChild(p);
-
-          // Create the card links
-          const cardLinksDiv = document.createElement('div');
-          cardLinksDiv.className = 'card-links';
-
-          const galleryLink = document.createElement('a');
-          galleryLink.href = data.view_uri;
-          galleryLink.textContent = 'Gallerie';
-
-          const reviewLink = document.createElement('a');
-          reviewLink.href = data.url;
-          reviewLink.textContent = 'Review';
-
-          cardLinksDiv.appendChild(galleryLink);
-          cardLinksDiv.appendChild(reviewLink);
-
-          // Append all parts to the list item
-          listItem.appendChild(cardImageLink);
-          listItem.appendChild(cardDescriptionLink);
-          listItem.appendChild(cardLinksDiv);
-          var wholeList = document.getElementById('collection-list');
-          wholeList.appendChild(listItem)
-
-
-
-        } else {
-          console.error('Error creating new collection');
-          alert("You are not allowed to create a new collection. Please contact an administrator for assistance.")
-        }
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newConfigData) // Send viewport size as JSON
       })
-      .catch(error => {
-        console.error('Error:', error);
-      });
+        .then(response => response.json())
+        .then(data => {
+          // Handle the server response (optional, e.g., update UI or cache new image)
+          if (data.success) {
+            // Add new data to collection list
+            console.log('New config added successfully!');
+            const listItem = document.createElement('li');
+            listItem.className = 'card';
+
+            // Create the card image link and image
+            const cardImageLink = document.createElement('a');
+            cardImageLink.href = data.url;
+            cardImageLink.className = 'card-image';
+
+            const img = document.createElement('img');
+            img.src = data.image_uri;
+            img.alt = "A fox";
+
+            cardImageLink.appendChild(img);
+
+            // Create the card description
+            const cardDescriptionLink = document.createElement('a');
+            cardDescriptionLink.href = data.url;  // Assuming you want to keep this for consistency
+            cardDescriptionLink.target = "_blank";
+            cardDescriptionLink.className = 'card-description';
+
+            const h2 = document.createElement('h2');
+            h2.textContent = data.name;
+
+            const p = document.createElement('p');
+            p.textContent = `${data.start_date} - ${data.end_date}`;
+
+            cardDescriptionLink.appendChild(h2);
+            cardDescriptionLink.appendChild(p);
+
+            // Create the card links
+            const cardLinksDiv = document.createElement('div');
+            cardLinksDiv.className = 'card-links';
+
+            const galleryLink = document.createElement('a');
+            galleryLink.href = data.view_uri;
+            galleryLink.textContent = 'Gallerie';
+
+            const reviewLink = document.createElement('a');
+            reviewLink.href = data.url;
+            reviewLink.textContent = 'Review';
+
+            cardLinksDiv.appendChild(galleryLink);
+            cardLinksDiv.appendChild(reviewLink);
+
+            // Append all parts to the list item
+            listItem.appendChild(cardImageLink);
+            listItem.appendChild(cardDescriptionLink);
+            listItem.appendChild(cardLinksDiv);
+            var wholeList = document.getElementById('collection-list');
+            wholeList.appendChild(listItem)
 
 
-      closeOverlay();
-  });
-</script>
-{% endblock %}
+
+          } else {
+            console.error('Error creating new collection');
+            alert("You are not allowed to create a new collection. Please contact an administrator for assistance.")
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+
+
+      closeCollectionOverlay();
+    });
+  </script>
+  {% endblock %}

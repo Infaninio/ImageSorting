@@ -1,4 +1,5 @@
 import logging
+import sqlite3
 from datetime import datetime
 from typing import Dict, Generator, Optional
 
@@ -55,6 +56,7 @@ def overview():
     return render_template(
         "configs/overview.html",
         configs=collections,
+        can_user_add_user_to_collection=db.can_user_create_collection(session["user_id"]),
     )
 
 
@@ -88,3 +90,41 @@ def new_config():
         return jsonify(result)
     else:
         return jsonify({"success": False})
+
+
+@bp.route("/get_users", methods=("GET", "POST"))
+def get_users():
+    """Get all users of a collection."""
+    if request.method == "POST":
+        collection_id = request.get_json().get("collectionId")
+        db = get_db()
+        if not db.can_user_create_collection(session["user_id"]):
+            return jsonify({"error": "You are not allowed to add users to collections."}), 403
+
+        users = db.get_all_users(collection_id)
+        return jsonify(users)
+
+    return jsonify({"error": "Invalid request method"}), 405
+
+
+@bp.route("/add_user_to_collection", methods=("GET", "POST"))
+def add_user_to_collection():
+    """Add a user to a collection."""
+    db = get_db()
+    if not db.can_user_create_collection(session["user_id"]):
+        return jsonify({"error": "You are not allowed to add users to collections."}), 403
+
+    if request.method == "POST":
+        data = request.get_json()
+        collection_id = data.get("collectionId")
+        users = data.get("users")
+        for user_id in users:
+            try:
+                db.add_user_to_collection(user_id=user_id, collection_id=collection_id)
+            except sqlite3.IntegrityError:
+                # Thats ok user already part of the collection
+                pass
+
+        return jsonify({"success": True})
+    else:
+        return jsonify({"error": "Invalid request method"}), 405

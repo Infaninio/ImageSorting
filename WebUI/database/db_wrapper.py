@@ -87,6 +87,7 @@ class Collection:
             "start_date": self.start_date_str,
             "end_date": self.end_date_str,
             "view_uri": f"/configs/gallery/{self.id}",
+            "id": self.id,
         }
 
 
@@ -382,11 +383,31 @@ class ImageTinderDatabase:
 
     @typechecked
     def can_user_create_collection(self, user_id: int) -> bool:
+        """Check if a user is allowed to create a collection."""
         query = f"""SELECT 1 FROM user WHERE id = {user_id} AND create_collection = 1 LIMIT 1;"""
         if self._execute_sql(query, True):
             return True
         else:
             return False
+
+    @typechecked
+    def get_all_users(self, collection_id: int) -> List[Dict[str, Any]]:
+        query = f"""SELECT
+                        u.email,
+                        u.id,
+                        CASE
+                            WHEN uc.collection_id IS NOT NULL THEN TRUE
+                            ELSE FALSE
+                        END AS has_access
+                    FROM
+                        user u
+                    LEFT JOIN
+                        user_collection uc
+                        ON u.id = uc.user_id AND uc.collection_id = {collection_id};
+                """
+        results = self._execute_sql(query, True)
+        users = [{"name": result[0], "id": result[1], "selected": bool(result[2])} for result in results]
+        return users
 
 
 def get_db() -> ImageTinderDatabase:
