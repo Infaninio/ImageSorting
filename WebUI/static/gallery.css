@@ -1,8 +1,27 @@
+.filter-controls {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 4rem;
+    font-size: 22px;
+    align-items: center;
+}
+.filter-controls > *{
+    padding-left: .5rem;
+    padding-right: .5rem;
+}
+
+#rating-filter, #best-of-the-day-filter, #apply-filters-btn {
+    margin-left: 10px;
+}
+.rate>i {
+    font-size: 47px;
+    font-style: normal;
+}
+
 #gallery {
     width: 100%;
     display: grid;
     column-gap: 1rem;
-    margin-top: 4rem;
     margin-bottom: 4rem;
 }
 

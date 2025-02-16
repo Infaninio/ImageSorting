@@ -128,3 +128,15 @@ def add_user_to_collection():
         return jsonify({"success": True})
     else:
         return jsonify({"error": "Invalid request method"}), 405
+
+
+@bp.route("/filter", methods=("GET", "POST"))
+def filter():
+    """Set a filter generator for the image gallery."""
+    # db = get_db()
+
+    # if request.method == "POST":
+    #     data = request.get_json()
+    #     customBackend.filter_session
+
+    return jsonify({"error": "Invalid request method"}), 405

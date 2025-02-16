@@ -293,7 +293,7 @@ class ImageTinderDatabase:
         return results[0][0]
 
     @typechecked
-    def get_all_image_ids(self, config_id: int) -> List[int]:
+    def get_all_image_ids(self, config_id: int, min_rating: 0, best_per_Day: 0) -> List[int]:
         query = f"""SELECT i.id
                 FROM image i
                 INNER JOIN collection c

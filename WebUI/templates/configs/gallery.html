@@ -2,12 +2,34 @@
 
 
 {% block header %}
-  <h1>{% block title %}1 N!CE Sammlung{% endblock %}</h1>
-  <link rel="stylesheet" href="{{ url_for('static', filename='gallery.css') }}">
+<h1>{% block title %}1 N!CE Sammlung{% endblock %}</h1>
+<link rel="stylesheet" href="{{ url_for('static', filename='gallery.css') }}">
 {% endblock %}
 
 {% block content %}
+<div id="filters" class="filter-controls">
+    <label for="rating-filter">Filtern nach Bewertung:</label>
+    <span class="rate" id="star-rating">
+        <i>★</i><i>★</i><i>★</i><i>★</i><i>★</i>
+    </span>
+    <div></div>
+    <div></div>
+    <label for="best-of-the-day-filter">Best of the day:</label>
+    <select id="best-of-the-day-filter">
+        <option value="1">1</option>
+        <option value="5">5</option>
+        <option value="10">10</option>
+        <option value="10">15</option>
+        <option value="10">20</option>
+        <option value="0">All</option>
+    </select>
+    <div></div>
+    <div></div>
+    <button id="apply-filters-btn">Apply Filters</button>
+</div>
+
 <div id="gallery">
+
 
 </div>
 {% endblock %}
@@ -25,7 +47,7 @@
     var all_images = false;
     var busyLoading = 0;
     async function fetchImageBatch() {
-        if (! all_images && busyLoading <= 0) {
+        if (!all_images && busyLoading <= 0) {
             busyLoading = busyLoading + preloadImages;
             for (let index = 0; index < preloadImages; index++) {
                 await new Promise(r => setTimeout(r, 20));
@@ -63,7 +85,7 @@
                     lastImageId = data.id
                 }
 
-                busyLoading = busyLoading -1;
+                busyLoading = busyLoading - 1;
 
             })
             .catch(error => console.error("Error preloading images:", error));
@@ -96,7 +118,7 @@
         imageDiv.appendChild(image);
 
         image.onload = () => {
-        // Optionally, handle actions after image loads (e.g., adding margin-bottom if needed)
+            // Optionally, handle actions after image loads (e.g., adding margin-bottom if needed)
             if (rating > 0) {
                 var overlay = getRatingOverlay(rating);
                 imageDiv.appendChild(overlay);
@@ -148,9 +170,59 @@
         }
     }
 
-    handleResize();
-    fetchImageBatch();
-    window.addEventListener('resize', handleResize);
-    window.addEventListener("scrollend", onScrollLoad);
+    currentRating = 0;
+    function updateRating(selectedIndex) {
+        const stars = document.querySelectorAll('.rate i');
+        currentRating = selectedIndex + 1; // Store the selected rating (1-5)
+
+        stars.forEach((star, index) => {
+            if (index <= selectedIndex) {
+                star.classList.add('selected');
+            } else {
+                star.classList.remove('selected');
+            }
+        });
+    }
+
+    // Add click event listeners to each star
+    document.querySelectorAll('.rate i').forEach((star, index) => {
+        star.addEventListener('click', () => {
+            updateRating(index);  // Update the rating state on click
+        });
+    });
+
+    document.getElementById('apply-filters-btn').addEventListener('click', function () {
+        var ratingFilter = currentRating;
+        var bestOfTheDayFilter = document.getElementById('best-of-the-day-filter').value;
+        console.log("ratingFilter", ratingFilter, "bestoftheday", bestOfTheDayFilter)
+        // Send these values to your backend and update the gallery view with filtered images.
+
+        fetch('/configs/filter', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({"mingRating": ratingFilter, "bestOfDay": bestOfTheDayFilter}) // Send viewport size as JSON
+        })
+            .then(response => response.json())
+            .then(data => {
+                // Handle the server response (optional, e.g., update UI or cache new image)
+                if (data.success) {
+                    console.log('Image resized successfully');
+                    const currentImageId = document.getElementById("image_container").src.split("/").pop();
+                    preloadedImages = {}
+                    preloadAdjacentImages(currentImageId);
+                } else {
+                    console.error('Error resizing image');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+        handleResize();
+        fetchImageBatch();
+        window.addEventListener('resize', handleResize);
+        window.addEventListener("scrollend", onScrollLoad);
 </script>
 {% endblock %}
