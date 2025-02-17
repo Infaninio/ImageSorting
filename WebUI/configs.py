@@ -31,6 +31,28 @@ class Backend:
             yield image_id
 
     @typechecked
+    @staticmethod
+    def filter_image_generator(
+        config_id: int, user_id: int, min_rating: int, max_results_per_day: int
+    ) -> Generator[int, None, None]:
+        db = get_db()
+        ids = db.get_images_ids_filtered(
+            config_id=config_id, user_id=user_id, min_rating=min_rating, max_results_per_day=max_results_per_day
+        )
+        print(f"Filtered ids: {ids}")
+        for image_id in ids:
+            yield image_id
+
+    @typechecked
+    def add_filtered_image_generator(self, session_id: str, config_id: int, min_rating: int, max_results_per_day: int):
+        self.generators[session_id] = self.filter_image_generator(
+            config_id=config_id,
+            user_id=session["user_id"],
+            min_rating=min_rating,
+            max_results_per_day=max_results_per_day,
+        )
+
+    @typechecked
     def get_next_image(self, session_id: str) -> Optional[int]:
         try:
             return next(self.generators[session_id])
@@ -133,10 +155,15 @@ def add_user_to_collection():
 @bp.route("/filter", methods=("GET", "POST"))
 def filter():
     """Set a filter generator for the image gallery."""
-    # db = get_db()
-
-    # if request.method == "POST":
-    #     data = request.get_json()
-    #     customBackend.filter_session
+    if request.method == "POST":
+        data = request.get_json()
+        config_id = int(request.referrer.split("/")[-1])
+        customBackend.add_filtered_image_generator(
+            session_id=session["uuid"],
+            config_id=config_id,
+            min_rating=data.get("minRating", 0),
+            max_results_per_day=int(data.get("bestOfDay", 0)),
+        )
+        return jsonify({"success": True})
 
     return jsonify({"error": "Invalid request method"}), 405

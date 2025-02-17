@@ -39,7 +39,7 @@
 
 <script>
     // Function to handle the window resize event
-    var preloadImages = 25
+    const preloadImages = 25
     var columnCnt = 0;
     var images = [];
     var lastImageId = NaN
@@ -202,16 +202,18 @@
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({"mingRating": ratingFilter, "bestOfDay": bestOfTheDayFilter}) // Send viewport size as JSON
+            body: JSON.stringify({"minRating": ratingFilter, "bestOfDay": bestOfTheDayFilter}) // Send viewport size as JSON
         })
             .then(response => response.json())
             .then(data => {
                 // Handle the server response (optional, e.g., update UI or cache new image)
                 if (data.success) {
-                    console.log('Image resized successfully');
-                    const currentImageId = document.getElementById("image_container").src.split("/").pop();
-                    preloadedImages = {}
-                    preloadAdjacentImages(currentImageId);
+                    console.log('Filter applied successfully!');
+                    images = [];
+                    all_images = false;
+                    busyLoading = 0;
+                    handleResize();
+                    fetchImageBatch();
                 } else {
                     console.error('Error resizing image');
                 }

@@ -293,7 +293,7 @@ class ImageTinderDatabase:
         return results[0][0]
 
     @typechecked
-    def get_all_image_ids(self, config_id: int, min_rating: 0, best_per_Day: 0) -> List[int]:
+    def get_all_image_ids(self, config_id: int) -> List[int]:
         query = f"""SELECT i.id
                 FROM image i
                 INNER JOIN collection c
@@ -306,6 +306,44 @@ class ImageTinderDatabase:
         if not results:
             return []
         return [result[0] for result in results]
+
+    @typechecked
+    def get_images_ids_filtered(
+        self, user_id: int, config_id: int, min_rating: int, max_results_per_day: int
+    ) -> List[int]:
+        query = f"""SELECT i.id, max_ratings.rating, i.creation_date
+                    FROM image i
+                    INNER JOIN collection c ON i.creation_date BETWEEN c.start_date AND c.end_date
+                    LEFT JOIN (
+                        SELECT image_id, MAX(rating) as rating
+                        FROM user_image
+                        WHERE user_id = {user_id}
+                        GROUP BY image_id
+                        HAVING COUNT(image_id) > 0
+                    ) AS max_ratings ON i.id = max_ratings.image_id
+                    WHERE c.id = {config_id} AND max_ratings.rating >= {min_rating}
+                    AND (
+                        max_ratings.rating IS NOT NULL OR max_ratings.rating IS NOT NULL
+                    )
+                    ORDER BY i.creation_date ASC
+                """
+        results = self._execute_sql(query, True)
+        last_date = datetime(1900, 11, 1)
+        results_per_day = 0
+        images = []
+
+        for row in results:
+            image_date = datetime.fromisoformat(row[2])
+            if image_date > last_date:
+                last_date = image_date
+                results_per_day = 0
+            results_per_day += 1
+            if results_per_day <= max_results_per_day:
+                images.append(row[0])
+            if results_per_day == 0:
+                images.append(row[0])
+
+        return images
 
     @typechecked
     def get_next_image_ids(self, user_id: int, config_id: int, current_id: int, next_images: int = 1) -> List[int]:
