@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+from pathlib import Path
 from typing import Optional, Tuple
 
 from PIL import Image
@@ -65,6 +66,10 @@ class Custom_Image:
             return img
 
         return self.image
+
+    @property
+    def name(self):
+        return Path(self.path).name
 
     def get_preview(self):
         img = self.get_image().copy()

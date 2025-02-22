@@ -5,14 +5,18 @@
     font-size: 22px;
     align-items: center;
 }
-.filter-controls > *{
+
+.filter-controls>* {
     padding-left: .5rem;
     padding-right: .5rem;
 }
 
-#rating-filter, #best-of-the-day-filter, #apply-filters-btn {
+#rating-filter,
+#best-of-the-day-filter,
+#apply-filters-btn {
     margin-left: 10px;
 }
+
 .rate>i {
     font-size: 47px;
     font-style: normal;
@@ -65,4 +69,35 @@
 .selected {
     color: #fc0;
     text-shadow: #fc0 0 0 20px;
+}
+
+#loading-overlay {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    z-index: 9999;
+}
+
+.spinner {
+    border: 4px solid rgba(212, 211, 211, 0.1);
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border-left-color: #ffffff;
+    animation: spin 1s linear infinite;
+    text-align: center;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
 }

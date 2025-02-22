@@ -340,7 +340,7 @@ class ImageTinderDatabase:
             results_per_day += 1
             if results_per_day <= max_results_per_day:
                 images.append(row[0])
-            if results_per_day == 0:
+            if max_results_per_day == 0:
                 images.append(row[0])
 
         return images

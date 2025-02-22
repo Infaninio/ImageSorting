@@ -1,9 +1,13 @@
+import io
 import logging
 import sqlite3
 from datetime import datetime
+from pathlib import Path
+from tempfile import gettempdir
 from typing import Dict, Generator, Optional
+from zipfile import ZipFile
 
-from flask import Blueprint, jsonify, redirect, render_template, request, session
+from flask import Blueprint, jsonify, redirect, render_template, request, send_file, session
 from typeguard import typechecked
 
 from .database import get_db
@@ -44,10 +48,12 @@ class Backend:
             yield image_id
 
     @typechecked
-    def add_filtered_image_generator(self, session_id: str, config_id: int, min_rating: int, max_results_per_day: int):
+    def add_filtered_image_generator(
+        self, session_id: str, config_id: int, user_id: int, min_rating: int = 0, max_results_per_day: int = 0
+    ):
         self.generators[session_id] = self.filter_image_generator(
             config_id=config_id,
-            user_id=session["user_id"],
+            user_id=user_id,
             min_rating=min_rating,
             max_results_per_day=max_results_per_day,
         )
@@ -161,9 +167,47 @@ def filter():
         customBackend.add_filtered_image_generator(
             session_id=session["uuid"],
             config_id=config_id,
+            user_id=session["user_id"],
             min_rating=data.get("minRating", 0),
             max_results_per_day=int(data.get("bestOfDay", 0)),
         )
         return jsonify({"success": True})
 
     return jsonify({"error": "Invalid request method"}), 405
+
+
+@bp.route("/download_gallery", methods=("GET", "POST"))
+def download_gallery():
+    """Create a zip file of all selected images and download it."""
+    if not request.method == "POST":
+        return jsonify({"error": "Invalid request method"}), 405
+
+    temp_dir = gettempdir()
+    db = get_db()
+    # Create a new ZIP file and add the images to it
+    zip_filename = "images.zip"
+    data = request.get_json()
+    config_id = int(request.referrer.split("/")[-1])
+    images = Backend.filter_image_generator(
+        user_id=session["user_id"],
+        config_id=config_id,
+        min_rating=data.get("minRating", 0),
+        max_results_per_day=int(data.get("bestOfDay", 0)),
+    )
+    try:
+        with ZipFile(Path(temp_dir, zip_filename), "w") as zip_file:
+            print(temp_dir)
+            for file_id in images:
+                img = db.get_image(file_id)
+                img_buffer = io.BytesIO()
+                img.get_image().save(img_buffer, format="JPEG" if img.name.endswith(".jpg") else "PNG")
+                img_buffer.seek(0)
+
+                zip_file.writestr(img.name, img_buffer.read())
+
+        # Return the ZIP file to the client
+        return send_file(Path(temp_dir, zip_filename), as_attachment=True)
+
+    finally:
+        # shutil.rmtree(temp_dir)
+        pass

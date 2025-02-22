@@ -16,16 +16,27 @@
     <div></div>
     <label for="best-of-the-day-filter">Best of the day:</label>
     <select id="best-of-the-day-filter">
+        <option value="0">All</option>
         <option value="1">1</option>
         <option value="5">5</option>
         <option value="10">10</option>
         <option value="10">15</option>
         <option value="10">20</option>
-        <option value="0">All</option>
     </select>
     <div></div>
     <div></div>
     <button id="apply-filters-btn">Apply Filters</button>
+
+    <div></div>
+    <div></div>
+    <button id="download_files" onclick="download_files()">Download</button>
+</div>
+
+<div id="loading-overlay" style="display: none;">
+    <div class="form-container">
+        <h2>Packing your images</h2>
+        <div class="spinner"></div>
+      </div>
 </div>
 
 <div id="gallery">
@@ -191,6 +202,39 @@
         });
     });
 
+
+    function download_files() {
+        var ratingFilter = currentRating;
+        var bestOfTheDayFilter = document.getElementById('best-of-the-day-filter').value;
+
+        // Show the loading overlay
+        var loadingOverlay = document.getElementById('loading-overlay');
+        loadingOverlay.style.display = 'flex';
+
+        fetch('/configs/download_gallery', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ "minRating": ratingFilter, "bestOfDay": bestOfTheDayFilter }) // Send viewport size as JSON
+        })
+            .then(response => response.blob())
+            .then(blob => {
+                // Hide the loading spinner
+                loadingOverlay.style.display = 'none';
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = "YourImages.zip";
+                document.body.appendChild(link); // Trigger the download
+                link.click();
+                document.body.removeChild(link);
+            })
+            .catch(error => {
+                loadingOverlay.style.display = 'none';
+                console.error('Error:', error);
+            });
+    }
+
     document.getElementById('apply-filters-btn').addEventListener('click', function () {
         var ratingFilter = currentRating;
         var bestOfTheDayFilter = document.getElementById('best-of-the-day-filter').value;
@@ -202,7 +246,7 @@
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({"minRating": ratingFilter, "bestOfDay": bestOfTheDayFilter}) // Send viewport size as JSON
+            body: JSON.stringify({ "minRating": ratingFilter, "bestOfDay": bestOfTheDayFilter }) // Send viewport size as JSON
         })
             .then(response => response.json())
             .then(data => {
@@ -221,10 +265,10 @@
             .catch(error => {
                 console.error('Error:', error);
             });
-        });
-        handleResize();
-        fetchImageBatch();
-        window.addEventListener('resize', handleResize);
-        window.addEventListener("scrollend", onScrollLoad);
+    });
+    handleResize();
+    fetchImageBatch();
+    window.addEventListener('resize', handleResize);
+    window.addEventListener("scrollend", onScrollLoad);
 </script>
 {% endblock %}
