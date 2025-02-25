@@ -11,7 +11,7 @@ from .scheduler import get_scheduler
 
 load_dotenv()
 
-if os.environ.get("IMAGE_SORT_DEBUG") == "True":
+if os.environ.get("IMAGE_SORT_DEBUG", False) == "True":
     logging.basicConfig(level=logging.DEBUG)
 
 

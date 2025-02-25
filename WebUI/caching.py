@@ -32,7 +32,7 @@ except KeyError as err:
     nextcloud_instance = None
     debug = True
 
-if os.environ["IMAGE_SORT_DEBUG"]:
+if os.environ.get("IMAGE_SORT_DEBUG", False) == "True":
     debug = True
     logging.basicConfig(level=logging.DEBUG)
 else:
