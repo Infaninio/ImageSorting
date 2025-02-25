@@ -164,13 +164,16 @@ def filter():
     if request.method == "POST":
         data = request.get_json()
         config_id = int(request.referrer.split("/")[-1])
-        customBackend.add_filtered_image_generator(
-            session_id=session["uuid"],
-            config_id=config_id,
-            user_id=session["user_id"],
-            min_rating=data.get("minRating", 0),
-            max_results_per_day=int(data.get("bestOfDay", 0)),
-        )
+        if (data.get("minRating", 0) == 0) and (int(data.get("bestOfDay", 0)) == 0):
+            customBackend.add_session(session_id=session["uuid"], config_id=config_id)
+        else:
+            customBackend.add_filtered_image_generator(
+                session_id=session["uuid"],
+                config_id=config_id,
+                user_id=session["user_id"],
+                min_rating=data.get("minRating", 0),
+                max_results_per_day=int(data.get("bestOfDay", 0)),
+            )
         return jsonify({"success": True})
 
     return jsonify({"error": "Invalid request method"}), 405
@@ -188,12 +191,15 @@ def download_gallery():
     zip_filename = "images.zip"
     data = request.get_json()
     config_id = int(request.referrer.split("/")[-1])
-    images = Backend.filter_image_generator(
-        user_id=session["user_id"],
-        config_id=config_id,
-        min_rating=data.get("minRating", 0),
-        max_results_per_day=int(data.get("bestOfDay", 0)),
-    )
+    if (data.get("minRating", 0) == 0) and (int(data.get("bestOfDay", 0)) == 0):
+        images = Backend.image_gallery_generator(config_id=config_id)
+    else:
+        images = Backend.filter_image_generator(
+            user_id=session["user_id"],
+            config_id=config_id,
+            min_rating=data.get("minRating", 0),
+            max_results_per_day=int(data.get("bestOfDay", 0)),
+        )
     try:
         with ZipFile(Path(temp_dir, zip_filename), "w") as zip_file:
             print(temp_dir)
