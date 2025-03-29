@@ -137,6 +137,22 @@ class ImageTinderDatabase:
         self._execute_sql(query)
         self.connection.commit()
 
+    def change_password(self, user_id: int, new_password: str, old_password: str):
+        query = f"SELECT * FROM user WHERE user.id = '{user_id}';"
+        result = self._execute_sql(query, get_result=True)
+        if not result:
+            raise UserNotExisting
+        query = f"SELECT password FROM user WHERE user.id = '{user_id}';"
+        result = self._execute_sql(query, get_result=True)
+        old_password_hash = result[0][0]
+        if not check_password_hash(old_password_hash, old_password):
+            raise WrongPassword
+
+        new_password_hash = generate_password_hash(password=new_password)
+        query = f"UPDATE user SET password='{new_password_hash}' WHERE id='{user_id}';"
+        self._execute_sql(query)
+        self.connection.commit()
+
     def get_user_collections(self, user_id: int) -> List[Collection]:
         query = f"""SELECT collection.id
                     FROM collection INNER JOIN user_collection ON user_collection.collection_id=collection.id

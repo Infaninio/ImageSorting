@@ -16,6 +16,8 @@
       {% if g.user %}
         <a href="{{ url_for('configs.overview')}}">Sammlungen von {{ g.user }}</a>
         <a href="{{ url_for('auth.logout') }}">Log Out</a>
+        <a href="{{ url_for('auth.change_password') }}">Change Password</a>
+
       {% else %}
         <a href="{{ url_for('auth.login') }}">Log In</a>
       {% endif %}

@@ -18,31 +18,38 @@ from .database import db_wrapper
 bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 
-@bp.route("/register", methods=("GET", "POST"))
-def register():
+@bp.route("/change_password", methods=("GET", "POST"))
+def change_password():
     """Webpage for registering a new User."""
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+        confirm_new_password = request.form["confirm_new_password"]
+        new_password = request.form["new_password"]
+        old_password = request.form["old_password"]
         db = db_wrapper.ImageTinderDatabase()
         error = None
-
-        if not username:
+        user_id = session["user_id"]
+        if not confirm_new_password:
             error = "Username is required."
-        elif not password:
+        elif not new_password:
             error = "Password is required."
+        elif not old_password:
+            error = "Old password is required."
+        elif new_password != confirm_new_password:
+            error = "Passwords do not match."
 
         if error is None:
             try:
-                db.create_user(username=username, password=password)
-            except db_wrapper.UserAlreadyExists:
-                error = f"User {username} is already registered."
+                db.change_password(user_id=user_id, new_password=new_password, old_password=old_password)
+            except db_wrapper.WrongPassword:
+                error = "Wrong password."
             else:
-                return redirect(url_for("auth.login"))
+                flash("Password changed successfully.")
 
-        flash(error)
+        if error:
+            flash(error)
+            print(error)
 
-    return render_template("auth/register.html")
+    return render_template("auth/change_password.html")
 
 
 @bp.route("/login", methods=("GET", "POST"))
