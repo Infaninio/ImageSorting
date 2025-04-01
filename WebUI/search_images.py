@@ -52,7 +52,7 @@ def main():
 
     images = get_image_files("/Photos/", nc)
     # Parallelize the add_or_update_image calls
-    with ThreadPoolExecutor() as executor:
+    with ThreadPoolExecutor(4) as executor:
         futures = [executor.submit(process_image, image) for image in images]
 
         # Optionally wait for all tasks to complete (if needed)
