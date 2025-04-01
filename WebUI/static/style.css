@@ -211,6 +211,12 @@ button#create-collection-btn {
   cursor: pointer;
 }
 
+button#create-new-user-btn{
+  padding: 10px 20px;
+  margin: 20px;
+  cursor: pointer;
+}
+
 .overlay {
   display: none; /* Hidden by default */
   position: fixed;

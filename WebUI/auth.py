@@ -6,6 +6,7 @@ from flask import (
     Blueprint,
     flash,
     g,
+    jsonify,
     redirect,
     render_template,
     request,
@@ -110,3 +111,24 @@ def login_required(view):
         return view(**kwargs)
 
     return wrapped_view
+
+
+@bp.route("/create_new_user", methods=["POST"])
+def create_new_user():
+    """Create a new user."""
+    if request.method == "POST":
+        data = request.get_json()
+    username = data["username"]
+    password = data["password"]
+    db = db_wrapper.get_db()
+    current_user_id = session.get("user_id")
+    if current_user_id is None:
+        return jsonify({"error": "You must be logged in to create a new user."}), 403
+    elif not db.is_admin(current_user_id):
+        return jsonify({"error": "You must be an admin to create a new user."}), 403
+
+    try:
+        db.create_user(username, password)
+    except db_wrapper.UserAlreadyExists:
+        return jsonify({"error": "A user with that username already exists."}), 409
+    return jsonify({"message": "User created successfully"}), 201

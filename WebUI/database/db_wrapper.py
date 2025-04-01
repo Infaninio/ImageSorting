@@ -463,6 +463,14 @@ class ImageTinderDatabase:
         users = [{"name": result[0], "id": result[1], "selected": bool(result[2])} for result in results]
         return users
 
+    @typechecked
+    def is_admin(self, user_id: int) -> bool:
+        query = f"""SELECT 1 FROM user WHERE id = {user_id} AND create_collection = 1 LIMIT 1;"""
+        if self._execute_sql(query, True):
+            return True
+        else:
+            return False
+
 
 def get_db() -> ImageTinderDatabase:
     """Get the database handler."""
