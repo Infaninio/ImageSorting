@@ -89,7 +89,7 @@ class Custom_Image:
         exif_info = img.getexif().get_ifd(IFD.Exif)
         if exif_info:
             for tag, value in exif_info.items():
-                if TAGS[tag] == "DateTimeOriginal":  # Assuming the date is stored as DateTimeOriginal
+                if TAGS.get(tag, None) == "DateTimeOriginal":  # Assuming the date is stored as DateTimeOriginal
                     return datetime.strptime(value, "%Y:%m:%d %H:%M:%S")
 
         raise ValueError("Could not read date from Exif Data")
