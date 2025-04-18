@@ -24,11 +24,7 @@ python ./Database/create_database.py
 #### Create cron job for update database with new images.
 First setup the necessary environment variables
 ```shell
-export NEXTCLOUD_URL='https://cloud.yourDomain.com'
-export NEXTCLOUD_USER='martin'
-export NEXTCLOUD_PASSWORD='asdf1234'
-
-chmod +x WebUI/search_images.py
+python -m WebUI.search_images
 ```
 
 #### Edit crontab
