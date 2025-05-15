@@ -9,7 +9,7 @@ from nc_py_api import Nextcloud
 from PIL import Image
 from pillow_heif import register_heif_opener
 
-load_dotenv()
+load_dotenv(override=True)
 
 register_heif_opener()
 CACHE_DIR = "./Cache/"
@@ -31,6 +31,7 @@ except KeyError as err:
     logging.error("Could not connect to nextcloud. Please check credentials. Switching to debug mode")
     nextcloud_instance = None
     debug = True
+
 
 if os.environ.get("IMAGE_SORT_DEBUG", False) == "True":
     debug = True

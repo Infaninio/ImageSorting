@@ -9,7 +9,7 @@ from flask_executor import Executor
 
 from .scheduler import get_scheduler
 
-load_dotenv()
+load_dotenv(override=True)
 
 if os.environ.get("IMAGE_SORT_DEBUG", False) == "True":
     logging.basicConfig(level=logging.DEBUG)

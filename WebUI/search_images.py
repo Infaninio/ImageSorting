@@ -9,7 +9,7 @@ from nc_py_api import Nextcloud
 from .database import ImageTinderDatabase
 from .Image import Custom_Image
 
-load_dotenv()
+load_dotenv(override=True)
 
 
 def get_image_files(dir: str, nextcloud_instance: Nextcloud) -> List[str]:
@@ -27,9 +27,9 @@ def get_image_files(dir: str, nextcloud_instance: Nextcloud) -> List[str]:
         List[str]: A list of all found image files
     """
     image_files = []
-    for node in nextcloud_instance.files.listdir(dir):
+    for node in nextcloud_instance.files.listdir(dir, depth=100):
         if node.is_dir:
-            image_files.extend(get_image_files(node.user_path, nextcloud_instance))
+            continue
         elif Path(node.user_path).suffix.lower() in [".png", ".jpg", ".jpeg", ".png", ".heic"]:
             image_files.append(node.user_path)
 
