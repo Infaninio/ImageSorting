@@ -1,4 +1,5 @@
 import io
+import logging
 
 from caching import remove_old_images
 from flask import Blueprint, jsonify, redirect, render_template, request, send_file, session, url_for
@@ -143,7 +144,11 @@ def get_next_gallery_image(current_image_id):
         return jsonify({"imagePath": "", "rating": -1, "relativeHeight": -1.0})
 
     next_image_rating = db.get_review(user_id=user_id, image_id=image_id)
-    image = db.get_image(image_id).get_image()
+    try:
+        image = db.get_image(image_id).get_image()
+    except Exception as e:
+        logging.error(e)
+        logging.error(f"Error loading image {image_id}.")
     next_image_relative_height = image.height / image.width
     return jsonify(
         {

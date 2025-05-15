@@ -66,7 +66,12 @@ def load_image(image_path: str, image_id: Optional[int] = None) -> Image.Image:
             rgb_image = nextcloud_instance.files.download(image_path)
             image = Image.open(BytesIO(rgb_image))
         if image_id:
-            image.save(f"{CACHE_DIR}{image_id}.jpg", exif=image.getexif())
+            try:
+                image.save(f"{CACHE_DIR}{image_id}.jpg", exif=image.getexif())
+            except Exception as e:
+                logging.warning(e)
+                logging.warning(f"Error saving exif data of {image_path}")
+                image.save(f"{CACHE_DIR}{image_id}.jpg")
     return image
 
 
