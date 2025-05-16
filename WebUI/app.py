@@ -4,7 +4,7 @@ import logging
 import os
 
 from dotenv import load_dotenv
-from flask import Flask, redirect, render_template
+from flask import Flask, redirect, render_template, send_from_directory
 from flask_executor import Executor
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -58,6 +58,10 @@ def create_app(test_config=None) -> Flask:
     @app.route("/noAdmin")
     def noAdmin():
         return render_template("noAdmin.html")
+
+    @app.route("/favicon.ico")
+    def favicon():
+        return send_from_directory(os.path.join(app.root_path, "static"), "images/gazer.png")
 
     from . import auth, configs, images
 
