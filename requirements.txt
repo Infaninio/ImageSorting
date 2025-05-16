@@ -6,3 +6,4 @@ nc_py_api
 typeguard
 flask-executor
 apscheduler
+Flask-Limiter

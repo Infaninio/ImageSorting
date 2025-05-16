@@ -6,6 +6,8 @@ import os
 from dotenv import load_dotenv
 from flask import Flask, redirect, render_template
 from flask_executor import Executor
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 from .scheduler import get_scheduler
 
@@ -13,7 +15,8 @@ load_dotenv(override=True)
 
 if os.environ.get("IMAGE_SORT_DEBUG", False) == "True":
     logging.basicConfig(level=logging.DEBUG)
-
+else:
+    logging.basicConfig(level=logging.WARNING)
 
 executor = Executor()
 
@@ -39,6 +42,8 @@ def create_app(test_config=None) -> Flask:
 
     app.config["EXECUTOR_MAX_WORKERS"] = 5
     executor.init_app(app)
+    limiter = Limiter(get_remote_address, default_limits=["1/second"])
+    limiter.init_app(app)
 
     # a simple page that says hello
 
@@ -54,16 +59,13 @@ def create_app(test_config=None) -> Flask:
     def noAdmin():
         return render_template("noAdmin.html")
 
-    from . import auth
+    from . import auth, configs, images
 
-    app.register_blueprint(auth.bp)
-
-    from . import configs
+    limiter.limit("4/minute")(auth.bp)
+    limiter.exempt(images.bp)
 
     app.register_blueprint(configs.bp)
-
-    from . import images
-
+    app.register_blueprint(auth.bp)
     app.register_blueprint(images.bp)
 
     scheduler = get_scheduler()
