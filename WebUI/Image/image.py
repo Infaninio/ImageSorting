@@ -29,7 +29,7 @@ class Custom_Image:
         self.path: str = path
         self.location: Optional[str] = location
         self.date: Optional[datetime] = date
-        self.image: Optional[Image.ImageFile.ImageFile] = None
+        self.image: Optional[Image.Image] = None
         self.id: int = image_id
 
     def _load_image(self):
@@ -56,7 +56,7 @@ class Custom_Image:
 
         return img
 
-    def get_image(self, image_size: Optional[Tuple[int, int]] = None):
+    def get_image(self, image_size: Optional[Tuple[int, int]] = None) -> Image.Image:
         """Load and return the image, applying orientation if needed."""
         if not self.image:
             self._load_image()
