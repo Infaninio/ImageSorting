@@ -61,7 +61,7 @@ def create_app(test_config=None) -> Flask:
 
     @app.route("/favicon.ico")
     def favicon():
-        return send_from_directory(os.path.join(app.root_path, "static"), "images/gazer.png")
+        return send_from_directory(os.path.join(app.root_path, "static"), "images/gazer.ico")
 
     from . import auth, configs, images
 
