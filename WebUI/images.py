@@ -127,9 +127,10 @@ def get_adjacent_images_extended(current_image_id):
         next_images.append({"image_path": f"/images/id_{next_image_id}", "rating": next_image_rating})
 
     previous_images = []
-    previous_image_rating = db.get_review(user_id, previous_image_id)
-    previous_image_rating = previous_image_rating if previous_image_rating else 0
-    previous_images.append({"image_path": f"/images/id_{previous_image_id}", "rating": previous_image_rating})
+    if previous_image_id is not None:
+        previous_image_rating = db.get_review(user_id, previous_image_id)
+        previous_image_rating = previous_image_rating if previous_image_rating else 0
+        previous_images.append({"image_path": f"/images/id_{previous_image_id}", "rating": previous_image_rating})
 
     return jsonify({"next": next_images, "previous": previous_images})
 
