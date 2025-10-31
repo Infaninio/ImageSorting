@@ -120,16 +120,39 @@ def remove_old_images():
     except FileNotFoundError:
         exception_list = []
 
+    # Get all cache files (both full images and previews)
     files = [
         (f, os.path.getmtime(os.path.join(CACHE_DIR, f)))
         for f in os.listdir(CACHE_DIR)
-        if os.path.isfile(os.path.join(CACHE_DIR, f)) and f not in exception_list
+        if os.path.isfile(os.path.join(CACHE_DIR, f)) and f not in exception_list and f != "_ignore_.txt"
     ]
-    num_to_remove = max(0, len(files) - MAX_IMAGES)
-    files.sort(key=lambda x: x[1])  # Sort by the second element, which is the modification time
+
+    # Count only full images (not previews) for limit check
+    full_images = [f for f in files if not f[0].startswith("preview_")]
+    preview_images = [f for f in files if f[0].startswith("preview_")]
+
+    # Remove old full images
+    num_to_remove = max(0, len(full_images) - MAX_IMAGES)
+    full_images.sort(key=lambda x: x[1])  # Sort by modification time
 
     for i in range(num_to_remove):
-        file_to_remove = files[i][0]
+        file_to_remove = full_images[i][0]
         file_path = os.path.join(CACHE_DIR, file_to_remove)
-        print(f"Removing oldest image: {file_to_remove}")
-        os.remove(file_path)
+        logging.debug(f"Removing oldest image: {file_to_remove}")
+        try:
+            os.remove(file_path)
+        except Exception as e:
+            logging.warning(f"Could not remove {file_to_remove}: {e}")
+
+    # Also clean up orphaned previews (previews without corresponding full image)
+    # Keep previews for the last MAX_IMAGES full images
+    if len(full_images) > MAX_IMAGES:
+        valid_image_ids = {f[0].replace(".jpg", "") for f in full_images[-MAX_IMAGES:]}
+        for preview_file, _ in preview_images:
+            preview_id = preview_file.replace("preview_", "").replace(".jpg", "")
+            if preview_id not in valid_image_ids:
+                try:
+                    os.remove(os.path.join(CACHE_DIR, preview_file))
+                    logging.debug(f"Removed orphaned preview: {preview_file}")
+                except Exception as e:
+                    logging.warning(f"Could not remove preview {preview_file}: {e}")

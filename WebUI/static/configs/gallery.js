@@ -1,18 +1,25 @@
 // Function to handle the window resize event
 const preloadImages = 25
+const MAX_IMAGES_TO_LOAD = 500; // Maximum number of images to load in gallery
 var columnCnt = 0;
 var images = [];
 var lastImageId = NaN
 var columns = [];
 var all_images = false;
 var busyLoading = 0;
+var totalImagesLoaded = 0;
 async function fetchImageBatch() {
-    if (!all_images && busyLoading <= 0) {
-        busyLoading = busyLoading + preloadImages;
-        for (let index = 0; index < preloadImages; index++) {
+    if (!all_images && busyLoading <= 0 && totalImagesLoaded < MAX_IMAGES_TO_LOAD) {
+        const imagesToLoad = Math.min(preloadImages, MAX_IMAGES_TO_LOAD - totalImagesLoaded);
+        busyLoading = busyLoading + imagesToLoad;
+        for (let index = 0; index < imagesToLoad; index++) {
             await new Promise(r => setTimeout(r, 20));
             addNewImage();
         }
+    }
+    if (totalImagesLoaded >= MAX_IMAGES_TO_LOAD && !all_images) {
+        console.log(`Reached maximum gallery size of ${MAX_IMAGES_TO_LOAD} images. Use filters to narrow down results.`);
+        all_images = true;
     }
 
 }
@@ -40,9 +47,13 @@ function addNewImage() {
             if (data.relativeHeight < 0) {
                 all_images = true;
             } else {
+                totalImagesLoaded++;
                 images.push([data.imagePath, data.relativeHeight, data.rating]);
                 addImageToColumn(data.imagePath, data.relativeHeight, data.rating)
                 lastImageId = data.id
+                if (totalImagesLoaded >= MAX_IMAGES_TO_LOAD) {
+                    all_images = true;
+                }
             }
 
             busyLoading = busyLoading - 1;
@@ -205,6 +216,7 @@ document.getElementById('apply-filters-btn').addEventListener('click', function 
                 images = [];
                 all_images = false;
                 busyLoading = 0;
+                totalImagesLoaded = 0;
                 handleResize();
                 fetchImageBatch();
             } else {

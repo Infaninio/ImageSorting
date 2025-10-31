@@ -26,9 +26,8 @@ def add_images_to_database(image_dir: Path, nr_images: int):
     today = datetime.datetime.now()
     for i_id in range(nr_images):
         image_date = today - datetime.timedelta(days=i_id)
-        database.add_image_to_database(
-            Custom_Image(image_id=i_id, path=image_files[i_id % len(image_files)], date=image_date)
-        )
+        image_path = str(image_files[i_id % len(image_files)])
+        database.add_image_to_database(Custom_Image(image_id=i_id, path=image_path, date=image_date))
 
 
 def add_collections_to_database(nr_images):

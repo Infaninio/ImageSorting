@@ -72,9 +72,75 @@ class Custom_Image:
         return Path(self.path).name
 
     def get_preview(self):
-        img = self.get_image().copy()
-        img.thumbnail([512, 512])
-        return img
+        """Get a lightweight preview thumbnail without loading the full image into memory."""
+        # Create thumbnail directly from file without loading full image
+        import os
+
+        from ..caching import CACHE_DIR
+
+        # Try to use cached thumbnail first
+        preview_cache_path = f"{CACHE_DIR}preview_{self.id}.jpg"
+        if os.path.exists(preview_cache_path):
+            return Image.open(preview_cache_path)
+
+        # Load image for thumbnail creation, but don't keep it
+        if self.image is not None:
+            img = self.image.copy()
+        elif os.path.exists(f"{CACHE_DIR}{self.id}.jpg"):
+            img = Image.open(f"{CACHE_DIR}{self.id}.jpg")
+        else:
+            img = Image.open(self.path)
+
+        # Create thumbnail and save to cache
+        img.thumbnail([256, 256])  # Smaller preview to save memory
+        img_copy = img.copy()
+
+        # Save preview cache
+        try:
+            img_copy.save(preview_cache_path, format="JPEG", quality=85, optimize=True)
+        except Exception as e:
+            logging.warning(f"Could not save preview cache: {e}")
+
+        # Close the original if it was opened fresh
+        if self.image is None:
+            img.close()
+
+        return img_copy
+
+    def get_dimensions(self) -> Tuple[int, int]:
+        """Get image dimensions without loading the full image into memory.
+
+        PIL lazily loads images - only reading the header for dimensions.
+
+        Returns
+        -------
+            Tuple[int, int]: (width, height) of the image
+        """
+        # Use PIL's lazy loading to get dimensions without loading full image
+        if self.image is not None:
+            return self.image.size
+
+        # Load just to get dimensions - PIL only reads header for size
+        import os
+
+        from ..caching import CACHE_DIR
+
+        try:
+            if os.path.exists(f"{CACHE_DIR}{self.id}.jpg"):
+                img = Image.open(f"{CACHE_DIR}{self.id}.jpg")
+                size = img.size
+                img.close()  # Close immediately after getting size
+                return size
+            else:
+                # Load image lazily to get dimensions - only header is read
+                img = Image.open(self.path)
+                size = img.size
+                img.close()  # Close immediately after getting size
+                return size
+        except Exception as e:
+            logging.warning(f"Error getting dimensions for {self.path}: {e}")
+            # Fallback to default aspect ratio if we can't read dimensions
+            return (1920, 1080)  # Default 16:9 ratio
 
     def get_location(self) -> str:
         if self.location:

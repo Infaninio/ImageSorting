@@ -1,3 +1,4 @@
+import gc
 import io
 import logging
 
@@ -91,20 +92,36 @@ def image(image_id: str):
         if not db.can_user_access_image(user_id=user_id, image_id=int(image_id[4:])):
             print(f"User {user_id} cant access image {int(image_id[4:])}")
             return "You are not allowed to view or review this image", 401
-        image = db.get_image(image_id=int(image_id[4:]))
-        image.get_preview().save(image_io, format="PNG")
+        image_obj = db.get_image(image_id=int(image_id[4:]))
+        preview = image_obj.get_preview()
+        preview.save(image_io, format="JPEG", quality=85, optimize=True)  # JPEG is smaller
+        preview.close()  # Explicitly close preview
+        del preview  # Release reference
+        # Ensure full image is not kept in memory
+        if image_obj.image is not None:
+            image_obj.image.close()
+            image_obj.image = None
+        del image_obj  # Release reference
+        gc.collect()  # Suggest garbage collection
         image_io.seek(0)
     else:
         if not db.can_user_access_image(user_id=user_id, image_id=int(image_id[3:])):
             return "You are not allowed to view or review this image", 401
-        image = db.get_image(image_id=int(image_id[3:]))
-        image.get_image(
+        image_obj = db.get_image(image_id=int(image_id[3:]))
+        served_image = image_obj.get_image(
             image_size=(session["vp_width"], session["vp_height"]) if "vp_height" in session else None
-        ).save(image_io, format="PNG")
+        )
+        served_image.save(image_io, format="JPEG", quality=90, optimize=True)
+        # Clean up - close copy if it was created
+        if served_image is not image_obj.image:
+            served_image.close()
+        del served_image, image_obj  # Release references
+        gc.collect()  # Suggest garbage collection
         image_io.seek(0)
 
     executor.submit(remove_old_images)
-    return send_file(image_io, as_attachment=False, mimetype="image/png")
+    mimetype = "image/jpeg" if image_id[:3] == "pre" else "image/jpeg"
+    return send_file(image_io, as_attachment=False, mimetype=mimetype)
 
 
 @bp.route("get_adjacent_images_extended/<current_image_id>", methods=("GET",))
@@ -146,11 +163,13 @@ def get_next_gallery_image(current_image_id):
 
     next_image_rating = db.get_review(user_id=user_id, image_id=image_id)
     try:
-        image = db.get_image(image_id).get_image()
+        image = db.get_image(image_id)
+        width, height = image.get_dimensions()
+        next_image_relative_height = height / width
     except Exception as e:
         logging.error(e)
         logging.error(f"Error loading image {image_id}.")
-    next_image_relative_height = image.height / image.width
+        return jsonify({"imagePath": "", "rating": -1, "relativeHeight": -1.0})
     return jsonify(
         {
             "imagePath": f"/images/pre_{image_id}",
